@@ -1,23 +1,24 @@
 import {
   ArrowDownLeft,
-  ArrowUpRight,
-  Bell,
-  Check,
   ChevronRight,
-  Clock3,
   Home,
   Plus,
   QrCode,
   ReceiptText,
-  Search,
   Send,
-  ShieldCheck,
-  Sparkles,
-  WalletCards
+  ShieldCheck
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { type BackendSnapshot, getBackendSnapshot } from "./backend/queries";
+import { hasSupabaseConfig } from "./backend/supabase";
 
 type TabKey = "home" | "send" | "receive";
+
+type ExpenseStatus =
+  | { kind: "missing-config" }
+  | { kind: "loading" }
+  | { kind: "ready"; snapshot: BackendSnapshot }
+  | { kind: "error"; message: string };
 
 type Tab = {
   key: TabKey;
@@ -37,60 +38,91 @@ const contacts = [
   { name: "Hana", label: "Saved", color: "bg-[#fff1dc] text-[#c46b00]" }
 ];
 
-const activity = [
-  {
-    title: "Dinner split",
-    detail: "Today, 8:42 PM",
-    amount: "-$28.40",
-    icon: ReceiptText,
-    tone: "bg-[#eef3ff] text-[#3c6df0]"
-  },
-  {
-    title: "Received from Mina",
-    detail: "Yesterday",
-    amount: "+$64.00",
-    icon: ArrowDownLeft,
-    tone: "bg-[#eaf8f0] text-[#178049]"
-  },
-  {
-    title: "Travel wallet",
-    detail: "Jun 28",
-    amount: "-$132.18",
-    icon: WalletCards,
-    tone: "bg-[#fff3df] text-[#c66b00]"
-  }
-];
-
 const qrCells = Array.from({ length: 25 }, (_, index) => ({
   id: `qr-cell-${index + 1}`,
   filled: [0, 1, 2, 5, 7, 10, 11, 12, 18, 20, 22, 23, 24].includes(index)
 }));
 
+const weekOneStart = new Date("2026-06-22T00:00:00");
+const dayInMs = 24 * 60 * 60 * 1000;
+
+function addDays(date: Date, days: number) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+}
+
+function getMondayStart(date: Date) {
+  const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  return monday;
+}
+
+function formatDateRange(startDate: Date) {
+  const endDate = addDays(startDate, 6);
+
+  return `${startDate.getMonth() + 1}.${startDate.getDate()} - ${
+    endDate.getMonth() + 1
+  }.${endDate.getDate()}`;
+}
+
+function formatWon(amount: number) {
+  return Math.round(amount).toLocaleString("ko-KR");
+}
+
+function getRealExpenseTotal(snapshot: BackendSnapshot) {
+  const exchangesById = new Map(
+    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
+  );
+
+  return snapshot.expenses.reduce((total, expense) => {
+    const exchange = exchangesById.get(expense.exchange);
+
+    return total + expense.cost * (exchange?.value ?? 1);
+  }, 0);
+}
+
+function getWeeklyExpenseSummary(snapshot: BackendSnapshot) {
+  const exchangesById = new Map(
+    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
+  );
+  const currentWeekStart = getMondayStart(new Date());
+  const weekCount =
+    Math.max(
+      0,
+      Math.floor((currentWeekStart.getTime() - weekOneStart.getTime()) / (dayInMs * 7))
+    ) + 1;
+
+  return Array.from({ length: weekCount }, (_, index) => {
+    const startDate = addDays(weekOneStart, index * 7);
+    const endDate = addDays(startDate, 7);
+    const total = snapshot.expenses.reduce((weekTotal, expense) => {
+      const expenseDate = new Date(`${expense.date}T00:00:00`);
+
+      if (expenseDate < startDate || expenseDate >= endDate) {
+        return weekTotal;
+      }
+
+      const exchange = exchangesById.get(expense.exchange);
+
+      return weekTotal + expense.cost * (exchange?.value ?? 1);
+    }, 0);
+
+    return {
+      id: `week-${index + 1}`,
+      label: `${index + 1}주차`,
+      dateRange: formatDateRange(startDate),
+      total
+    };
+  });
+}
+
 function AppHeader() {
   return (
-    <header className="flex items-center justify-between px-5 pt-5">
-      <button
-        className="grid size-11 place-items-center rounded-full bg-white text-[#1f2937] shadow-[0_8px_24px_rgba(15,23,42,0.06)]"
-        type="button"
-        aria-label="Search"
-      >
-        <Search className="size-5" aria-hidden="true" />
-      </button>
-
-      <div className="flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
-        <span className="grid size-7 place-items-center rounded-full bg-[#111827]">
-          <Sparkles className="size-4 text-white" aria-hidden="true" />
-        </span>
-        <span className="text-sm font-semibold text-[#111827]">Yugain</span>
-      </div>
-
-      <button
-        className="grid size-11 place-items-center rounded-full bg-white text-[#1f2937] shadow-[0_8px_24px_rgba(15,23,42,0.06)]"
-        type="button"
-        aria-label="Notifications"
-      >
-        <Bell className="size-5" aria-hidden="true" />
-      </button>
+    <header className="fixed left-1/2 top-0 z-10 w-full max-w-[430px] -translate-x-1/2 bg-[#f2f4f6] px-5 pb-8 pt-5">
+      <h1 className="bg-gradient-to-b from-[#111827] from-55% to-[#111827]/0 bg-clip-text text-4xl font-bold tracking-normal text-transparent">
+        공금
+      </h1>
     </header>
   );
 }
@@ -131,95 +163,92 @@ function FloatingTabs({
   );
 }
 
-function HomePage() {
+function HomePage({ status }: { status: ExpenseStatus }) {
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const summary = useMemo(() => {
+    if (status.kind !== "ready") {
+      return {
+        total: 0,
+        weeks: []
+      };
+    }
+
+    return {
+      total: getRealExpenseTotal(status.snapshot),
+      weeks: getWeeklyExpenseSummary(status.snapshot)
+    };
+  }, [status]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, []);
+
+  useEffect(() => {
+    if (status.kind === "ready") {
+      bottomRef.current?.scrollIntoView({ block: "end" });
+    }
+  }, [status.kind]);
+
   return (
-    <div className="grid gap-5 px-5 pb-32 pt-8">
-      <section className="rounded-[2rem] bg-[#111827] p-6 text-white shadow-[0_24px_70px_rgba(17,24,39,0.2)]">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-white/62">Available balance</p>
-            <h1 className="mt-3 text-5xl font-bold tracking-normal">$2,480.50</h1>
+    <div className="min-h-screen px-5 pb-36 pt-32">
+      <section className="relative pl-9">
+        <div className="absolute bottom-1 left-[0.8125rem] top-1 w-0.5 rounded-full bg-[#d9dee6]" />
+
+        {status.kind === "missing-config" && (
+          <div className="rounded-[1.5rem] bg-white p-5 text-[15px] font-semibold leading-6 text-[#8a94a3]">
+            Supabase 설정이 필요해요.
           </div>
-          <span className="rounded-full bg-white/12 px-3 py-1.5 text-sm font-semibold text-white/82">
-            USD
-          </span>
-        </div>
+        )}
 
-        <div className="mt-8 grid grid-cols-2 gap-3">
-          <button
-            className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-white text-[15px] font-semibold text-[#111827]"
-            type="button"
-          >
-            <ArrowUpRight className="size-5" aria-hidden="true" />
-            Send
-          </button>
-          <button
-            className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-white/12 text-[15px] font-semibold text-white"
-            type="button"
-          >
-            <ArrowDownLeft className="size-5" aria-hidden="true" />
-            Receive
-          </button>
-        </div>
+        {status.kind === "loading" && (
+          <div className="rounded-[1.5rem] bg-white p-5 text-[15px] font-semibold leading-6 text-[#8a94a3]">
+            지출을 불러오는 중이에요.
+          </div>
+        )}
+
+        {status.kind === "error" && (
+          <div className="rounded-[1.5rem] bg-white p-5 text-[15px] font-semibold leading-6 text-[#8a94a3]">
+            지출을 불러오지 못했어요.
+          </div>
+        )}
+
+        {summary.weeks.length > 0 && (
+          <div className="grid gap-7">
+            {summary.weeks.map((week) => (
+              <article className="relative" key={week.id}>
+                <span className="absolute -left-9 top-1 grid size-7 place-items-center rounded-full border-[5px] border-[#f2f4f6] bg-[#111827]" />
+                <div>
+                  <div className="flex items-baseline justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-[#111827]">{week.label}</h2>
+                      <p className="mt-1 text-sm font-semibold text-[#9aa3af]">
+                        {week.dateRange}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-lg font-bold text-[#111827]">
+                      {formatWon(week.total)}원
+                    </p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
-      <section className="grid grid-cols-3 gap-3">
-        {[
-          { label: "Cards", value: "4", icon: WalletCards },
-          { label: "Paid", value: "$780", icon: Check },
-          { label: "Pending", value: "2", icon: Clock3 }
-        ].map((item) => (
-          <article className="rounded-3xl bg-white p-4" key={item.label}>
-            <span className="grid size-10 place-items-center rounded-2xl bg-[#f2f4f7] text-[#111827]">
-              <item.icon className="size-5" aria-hidden="true" />
-            </span>
-            <p className="mt-4 text-2xl font-bold text-[#111827]">{item.value}</p>
-            <p className="mt-1 text-sm font-medium text-[#6b7280]">{item.label}</p>
-          </article>
-        ))}
+      <section className="pt-24">
+        <h1 className="whitespace-pre-line text-[3.6rem] font-bold leading-[1.08] tracking-normal text-[#111827]">
+          {`지금까지\n${formatWon(summary.total)}원을\n썼어요`}
+        </h1>
       </section>
-
-      <section className="rounded-[1.75rem] bg-white p-2">
-        <div className="flex items-center justify-between px-3 py-3">
-          <h2 className="text-lg font-bold text-[#111827]">Activity</h2>
-          <button
-            className="grid size-9 place-items-center rounded-full bg-[#f4f6f8] text-[#111827]"
-            type="button"
-            aria-label="View all activity"
-          >
-            <ChevronRight className="size-5" aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="grid gap-1">
-          {activity.map((item) => (
-            <article
-              className="flex items-center gap-3 rounded-3xl px-3 py-3"
-              key={item.title}
-            >
-              <span
-                className={`grid size-12 place-items-center rounded-2xl ${item.tone}`}
-              >
-                <item.icon className="size-5" aria-hidden="true" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-[#111827]">{item.title}</p>
-                <p className="mt-0.5 text-sm font-medium text-[#8a94a3]">
-                  {item.detail}
-                </p>
-              </div>
-              <p className="font-bold text-[#111827]">{item.amount}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      <div ref={bottomRef} />
     </div>
   );
 }
 
 function SendPage() {
   return (
-    <div className="grid gap-5 px-5 pb-32 pt-8">
+    <div className="grid gap-5 px-5 pb-32 pt-32">
       <section className="rounded-[2rem] bg-white p-5">
         <p className="text-sm font-semibold text-[#8a94a3]">Send money</p>
         <div className="mt-6 flex items-end gap-2">
@@ -291,7 +320,7 @@ function SendPage() {
 
 function ReceivePage() {
   return (
-    <div className="grid gap-5 px-5 pb-32 pt-8">
+    <div className="grid gap-5 px-5 pb-32 pt-32">
       <section className="rounded-[2rem] bg-white p-5 text-center">
         <p className="text-sm font-semibold text-[#8a94a3]">Receive money</p>
         <h1 className="mt-2 text-3xl font-bold text-[#111827]">Share your code</h1>
@@ -338,13 +367,43 @@ function ReceivePage() {
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabKey>("home");
+  const [expenseStatus, setExpenseStatus] = useState<ExpenseStatus>(() =>
+    hasSupabaseConfig() ? { kind: "loading" } : { kind: "missing-config" }
+  );
+
+  useEffect(() => {
+    if (!hasSupabaseConfig()) {
+      return;
+    }
+
+    let isCurrent = true;
+
+    getBackendSnapshot()
+      .then((snapshot) => {
+        if (isCurrent) {
+          setExpenseStatus({ kind: "ready", snapshot });
+        }
+      })
+      .catch((error: unknown) => {
+        if (isCurrent) {
+          setExpenseStatus({
+            kind: "error",
+            message: error instanceof Error ? error.message : "Could not load expenses."
+          });
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#f2f4f6] text-[#111827]">
       <div className="mx-auto min-h-screen w-full max-w-[430px] overflow-hidden">
         <AppHeader />
 
-        {activeTab === "home" && <HomePage />}
+        {activeTab === "home" && <HomePage status={expenseStatus} />}
         {activeTab === "send" && <SendPage />}
         {activeTab === "receive" && <ReceivePage />}
       </div>
