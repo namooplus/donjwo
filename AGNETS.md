@@ -17,6 +17,10 @@ This project is a Bun-managed React, TypeScript, Vite PWA. Keep this file and
 - Use Biome for formatting and linting.
 - Use Knip to catch unused files, exports, and dependencies.
 - PWA generation is configured through `vite-plugin-pwa` in `vite.config.ts`.
+- Supabase JS is configured in `src/backend/supabase.ts`.
+- Local Supabase credentials belong in `.env.local`; never commit real Supabase
+  keys.
+- Use `VITE_SUPABASE_PUBLISHABLE_KEY` for client-side Supabase access.
 
 ## Code Guidelines
 
@@ -25,3 +29,5 @@ This project is a Bun-managed React, TypeScript, Vite PWA. Keep this file and
 - Keep UI components accessible with semantic elements and labels.
 - Update the PWA manifest details when the product name, icon, colors, or app
   description changes.
+- Keep backend table interfaces in `src/backend/schema.ts`.
+- Keep typed Supabase reads and writes under `src/backend`.

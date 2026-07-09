@@ -1,4 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/backend/schema.ts", "src/backend/supabase.ts"],
+  "ignoreDependencies": ["tailwindcss"],
   "project": ["src/**/*.{ts,tsx}", "*.config.ts"]
 }

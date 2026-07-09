@@ -3,5 +3,8 @@ dist
 output
 .playwright-mcp
 coverage
+.env
+.env.*
+!.env.example
 .DS_Store
 *.local
