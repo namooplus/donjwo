@@ -13,16 +13,21 @@ type HomeScreenProps = {
 
 export function HomeScreen({ snapshot, onOpenExpenseHistory }: HomeScreenProps) {
   const [activeTab, setActiveTab] = useState<HomeTabKey>("summary");
+  const titleByTab: Record<HomeTabKey, string> = {
+    summary: "공금",
+    send: "민서가 보내야 할 돈",
+    receive: "민서가 받아야 할 돈"
+  };
 
   return (
     <>
-      <ScreenHeader title="공금" />
+      <ScreenHeader title={titleByTab[activeTab]} />
 
       {activeTab === "summary" && (
         <SummaryTab snapshot={snapshot} onOpenExpenseHistory={onOpenExpenseHistory} />
       )}
-      {activeTab === "send" && <SendTab />}
-      {activeTab === "receive" && <ReceiveTab />}
+      {activeTab === "send" && <SendTab snapshot={snapshot} />}
+      {activeTab === "receive" && <ReceiveTab snapshot={snapshot} />}
 
       <FloatingTabs activeTab={activeTab} onChange={setActiveTab} />
     </>

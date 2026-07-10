@@ -1,79 +1,179 @@
-import { ChevronRight, Plus, Send, ShieldCheck } from "lucide-react";
+import { ReceiptText } from "lucide-react";
+import { useMemo } from "react";
+import type { BackendSnapshot } from "@/backend/queries";
+import { LoadingCard } from "@/components/common/LoadingCard";
+import { formatWon } from "@/features/home/spendingSummary";
 
-const contacts = [
-  { name: "Mina", label: "Recent", color: "bg-[#eaf2ff] text-[#2b6eea]" },
-  { name: "Joon", label: "Friend", color: "bg-[#ecf9f2] text-[#14804a]" },
-  { name: "Hana", label: "Saved", color: "bg-[#fff1dc] text-[#c46b00]" }
-];
+type SendTabProps = {
+  snapshot: BackendSnapshot | null;
+};
 
-export function SendTab() {
+type SendExpenseItem = {
+  id: string;
+  name: string;
+  dateLabel: string;
+  amount: number;
+  hasPendingSender: boolean;
+};
+
+type SendCard = {
+  payerId: number;
+  payerName: string;
+  total: number;
+  expenses: SendExpenseItem[];
+};
+
+const targetPersonName = "민서";
+
+export function SendTab({ snapshot }: SendTabProps) {
+  const cards = useMemo(() => {
+    if (!snapshot) {
+      return [];
+    }
+
+    return getSendCards(snapshot);
+  }, [snapshot]);
+
   return (
     <div className="grid gap-5 px-7 pb-32 pt-32 sm:px-9 lg:px-12">
-      <section className="rounded-[2rem] bg-white p-5">
-        <p className="text-sm font-semibold text-[#8a94a3]">Send money</p>
-        <div className="mt-6 flex items-end gap-2">
-          <span className="pb-2 text-3xl font-bold text-[#8a94a3]">$</span>
-          <h1 className="text-6xl font-bold tracking-normal text-[#111827]">125</h1>
-          <span className="pb-3 text-xl font-bold text-[#8a94a3]">.00</span>
-        </div>
-        <div className="mt-6 rounded-3xl bg-[#f4f6f8] px-4 py-4">
-          <p className="text-sm font-medium text-[#8a94a3]">To</p>
-          <div className="mt-2 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="grid size-11 place-items-center rounded-full bg-[#eaf2ff] text-sm font-bold text-[#2b6eea]">
-                MN
-              </span>
-              <div>
-                <p className="font-bold text-[#111827]">Mina Kim</p>
-                <p className="text-sm font-medium text-[#8a94a3]">m.kim@yugain</p>
-              </div>
-            </div>
-            <ChevronRight className="size-5 text-[#8a94a3]" aria-hidden="true" />
+      {!snapshot && <LoadingCard />}
+
+      {snapshot && cards.length === 0 && (
+        <p className="rounded-[1.25rem] bg-white p-5 text-[15px] font-semibold text-[#8a94a3]">
+          보낼 돈이 없어요.
+        </p>
+      )}
+
+      {cards.map((card) => (
+        <section className="rounded-[1.75rem] bg-white p-5" key={card.payerId}>
+          <h2 className="whitespace-pre-line text-[24px] font-black leading-[1.18] tracking-normal text-[#111827]">
+            {card.payerName}에게{"\n"}
+            {formatWon(card.total)}원을 보내야 해요.
+          </h2>
+
+          <div className="mt-5 divide-y divide-[#eef1f4]">
+            {card.expenses.map((expense) => (
+              <article className="flex items-center gap-3 py-4" key={expense.id}>
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#fff1f1] text-[#dc2626]">
+                  <ReceiptText className="size-5" aria-hidden="true" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-[15px] font-bold text-[#111827]">
+                    {expense.name}
+                  </h3>
+                  <p className="mt-1 truncate text-[13px] font-semibold text-[#9aa3af]">
+                    {expense.dateLabel} · {formatWon(expense.amount)}원
+                  </p>
+                </div>
+                {expense.hasPendingSender && (
+                  <button
+                    className="shrink-0 rounded-full bg-[#111827] px-3.5 py-2 text-[13px] font-bold text-white"
+                    type="button"
+                  >
+                    송금했어요
+                  </button>
+                )}
+              </article>
+            ))}
           </div>
-        </div>
-      </section>
-
-      <section className="rounded-[1.75rem] bg-white p-2">
-        <div className="flex items-center justify-between px-3 py-3">
-          <h2 className="text-lg font-bold text-[#111827]">People</h2>
-          <button
-            className="grid size-9 place-items-center rounded-full bg-[#111827] text-white"
-            type="button"
-            aria-label="Add recipient"
-          >
-            <Plus className="size-5" aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="grid gap-1">
-          {contacts.map((contact) => (
-            <button
-              className="flex items-center gap-3 rounded-3xl px-3 py-3 text-left hover:bg-[#f7f8fa]"
-              key={contact.name}
-              type="button"
-            >
-              <span
-                className={`grid size-12 place-items-center rounded-full text-sm font-bold ${contact.color}`}
-              >
-                {contact.name.slice(0, 2).toUpperCase()}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-[#111827]">{contact.name}</p>
-                <p className="text-sm font-medium text-[#8a94a3]">{contact.label}</p>
-              </div>
-              <Send className="size-5 text-[#8a94a3]" aria-hidden="true" />
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <button
-        className="flex h-16 items-center justify-center gap-2 rounded-[1.5rem] bg-[#2f6df6] text-[17px] font-bold text-white shadow-[0_16px_32px_rgba(47,109,246,0.24)]"
-        type="button"
-      >
-        <ShieldCheck className="size-5" aria-hidden="true" />
-        Confirm transfer
-      </button>
+        </section>
+      ))}
     </div>
   );
+}
+
+function getSendCards(snapshot: BackendSnapshot): SendCard[] {
+  const targetPerson = snapshot.people.find(
+    (person) => person.name === targetPersonName
+  );
+
+  if (!targetPerson) {
+    return [];
+  }
+
+  const peopleById = new Map(snapshot.people.map((person) => [person.id, person]));
+  const exchangesById = new Map(
+    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
+  );
+  const debtorIdsByExpenseId = snapshot.expenseDebtors.reduce(
+    (debtors, expenseDebtor) => {
+      const expenseDebtors = debtors.get(expenseDebtor.expense) ?? new Set<number>();
+      expenseDebtors.add(expenseDebtor.debtor);
+      debtors.set(expenseDebtor.expense, expenseDebtors);
+
+      return debtors;
+    },
+    new Map<number, Set<number>>()
+  );
+  const targetSendersByExpenseId = snapshot.expenseSenders.reduce(
+    (senders, expenseSender) => {
+      if (expenseSender.sender !== targetPerson.id) {
+        return senders;
+      }
+
+      const expenseSenders = senders.get(expenseSender.expense) ?? [];
+      expenseSenders.push(expenseSender);
+      senders.set(expenseSender.expense, expenseSenders);
+
+      return senders;
+    },
+    new Map<number, { verified: boolean }[]>()
+  );
+  const cardsByPayerId = new Map<number, SendCard>();
+
+  for (const expense of snapshot.expenses) {
+    if (expense.payer === targetPerson.id) {
+      continue;
+    }
+
+    const debtorIds = debtorIdsByExpenseId.get(expense.id);
+
+    if (!debtorIds?.has(targetPerson.id)) {
+      continue;
+    }
+
+    const targetSenders = targetSendersByExpenseId.get(expense.id) ?? [];
+
+    if (targetSenders.some((sender) => sender.verified)) {
+      continue;
+    }
+
+    const payer = peopleById.get(expense.payer);
+
+    if (!payer) {
+      continue;
+    }
+
+    const exchange = exchangesById.get(expense.exchange);
+    const amount = (expense.cost * (exchange?.value ?? 1)) / debtorIds.size;
+    const card = cardsByPayerId.get(payer.id) ?? {
+      payerId: payer.id,
+      payerName: payer.name,
+      total: 0,
+      expenses: []
+    };
+
+    card.total += amount;
+    card.expenses.push({
+      id: String(expense.id),
+      name: expense.name,
+      dateLabel: formatKoreanDate(expense.date),
+      amount,
+      hasPendingSender: targetSenders.some((sender) => !sender.verified)
+    });
+    cardsByPayerId.set(payer.id, card);
+  }
+
+  return Array.from(cardsByPayerId.values())
+    .map((card) => ({
+      ...card,
+      expenses: card.expenses.sort((left, right) => Number(right.id) - Number(left.id))
+    }))
+    .sort((left, right) => right.total - left.total);
+}
+
+function formatKoreanDate(date: string) {
+  const parsedDate = new Date(`${date}T00:00:00`);
+
+  return `${parsedDate.getMonth() + 1}월 ${parsedDate.getDate()}일`;
 }

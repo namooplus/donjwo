@@ -1,53 +1,183 @@
-import { QrCode, ReceiptText } from "lucide-react";
+import { ReceiptText } from "lucide-react";
+import { useMemo } from "react";
+import type { BackendSnapshot } from "@/backend/queries";
+import { LoadingCard } from "@/components/common/LoadingCard";
+import { formatWon } from "@/features/home/spendingSummary";
 
-const qrCells = Array.from({ length: 25 }, (_, index) => ({
-  id: `qr-cell-${index + 1}`,
-  filled: [0, 1, 2, 5, 7, 10, 11, 12, 18, 20, 22, 23, 24].includes(index)
-}));
+type ReceiveTabProps = {
+  snapshot: BackendSnapshot | null;
+};
 
-export function ReceiveTab() {
+type ReceiveExpenseItem = {
+  id: string;
+  name: string;
+  dateLabel: string;
+  amount: number;
+  hasPendingSender: boolean;
+};
+
+type ReceiveCard = {
+  debtorId: number;
+  debtorName: string;
+  total: number;
+  expenses: ReceiveExpenseItem[];
+};
+
+const targetPersonName = "민서";
+
+export function ReceiveTab({ snapshot }: ReceiveTabProps) {
+  const cards = useMemo(() => {
+    if (!snapshot) {
+      return [];
+    }
+
+    return getReceiveCards(snapshot);
+  }, [snapshot]);
+
   return (
     <div className="grid gap-5 px-7 pb-32 pt-32 sm:px-9 lg:px-12">
-      <section className="rounded-[2rem] bg-white p-5 text-center">
-        <p className="text-sm font-semibold text-[#8a94a3]">Receive money</p>
-        <h1 className="mt-2 text-3xl font-bold text-[#111827]">Share your code</h1>
+      {!snapshot && <LoadingCard />}
 
-        <div className="mx-auto mt-7 grid size-64 max-w-full place-items-center rounded-[2rem] bg-[#f4f6f8] p-5">
-          <div className="grid size-full grid-cols-5 gap-2 rounded-3xl bg-white p-4">
-            {qrCells.map((cell) => (
-              <span
-                className={[
-                  "rounded-md",
-                  cell.filled ? "bg-[#111827]" : "bg-[#dfe5ec]"
-                ].join(" ")}
-                key={cell.id}
-              />
+      {snapshot && cards.length === 0 && (
+        <p className="rounded-[1.25rem] bg-white p-5 text-[15px] font-semibold text-[#8a94a3]">
+          받을 돈이 없어요.
+        </p>
+      )}
+
+      {cards.map((card) => (
+        <section className="rounded-[1.75rem] bg-white p-5" key={card.debtorId}>
+          <h2 className="whitespace-pre-line text-[24px] font-black leading-[1.18] tracking-normal text-[#111827]">
+            {card.debtorName}에게{"\n"}
+            {formatWon(card.total)}원을 받아야 해요.
+          </h2>
+
+          <div className="mt-5 divide-y divide-[#eef1f4]">
+            {card.expenses.map((expense) => (
+              <article className="flex items-center gap-3 py-4" key={expense.id}>
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#f2f6ff] text-[#2f6df6]">
+                  <ReceiptText className="size-5" aria-hidden="true" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-[15px] font-bold text-[#111827]">
+                    {expense.name}
+                  </h3>
+                  <p className="mt-1 truncate text-[13px] font-semibold text-[#9aa3af]">
+                    {expense.dateLabel} · {formatWon(expense.amount)}원
+                  </p>
+                </div>
+                {expense.hasPendingSender && (
+                  <button
+                    className="shrink-0 rounded-full bg-[#111827] px-3.5 py-2 text-[13px] font-bold text-white"
+                    type="button"
+                  >
+                    받았어요
+                  </button>
+                )}
+              </article>
             ))}
           </div>
-        </div>
-
-        <div className="mt-6 rounded-3xl bg-[#f4f6f8] px-4 py-4 text-left">
-          <p className="text-sm font-medium text-[#8a94a3]">Account</p>
-          <p className="mt-1 font-bold text-[#111827]">Yugain Wallet 0429</p>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-2 gap-3">
-        <button
-          className="flex h-28 flex-col items-center justify-center gap-3 rounded-[1.5rem] bg-white text-[#111827]"
-          type="button"
-        >
-          <QrCode className="size-6" aria-hidden="true" />
-          <span className="font-semibold">Show QR</span>
-        </button>
-        <button
-          className="flex h-28 flex-col items-center justify-center gap-3 rounded-[1.5rem] bg-white text-[#111827]"
-          type="button"
-        >
-          <ReceiptText className="size-6" aria-hidden="true" />
-          <span className="font-semibold">Request</span>
-        </button>
-      </section>
+        </section>
+      ))}
     </div>
   );
+}
+
+function getReceiveCards(snapshot: BackendSnapshot): ReceiveCard[] {
+  const targetPerson = snapshot.people.find(
+    (person) => person.name === targetPersonName
+  );
+
+  if (!targetPerson) {
+    return [];
+  }
+
+  const peopleById = new Map(snapshot.people.map((person) => [person.id, person]));
+  const exchangesById = new Map(
+    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
+  );
+  const debtorIdsByExpenseId = snapshot.expenseDebtors.reduce(
+    (debtors, expenseDebtor) => {
+      const expenseDebtors = debtors.get(expenseDebtor.expense) ?? new Set<number>();
+      expenseDebtors.add(expenseDebtor.debtor);
+      debtors.set(expenseDebtor.expense, expenseDebtors);
+
+      return debtors;
+    },
+    new Map<number, Set<number>>()
+  );
+  const sendersByExpenseId = snapshot.expenseSenders.reduce(
+    (senders, expenseSender) => {
+      const expenseSenders = senders.get(expenseSender.expense) ?? [];
+      expenseSenders.push(expenseSender);
+      senders.set(expenseSender.expense, expenseSenders);
+
+      return senders;
+    },
+    new Map<number, { sender: number; verified: boolean }[]>()
+  );
+  const cardsByDebtorId = new Map<number, ReceiveCard>();
+
+  for (const expense of snapshot.expenses) {
+    if (expense.payer !== targetPerson.id) {
+      continue;
+    }
+
+    const debtorIds = debtorIdsByExpenseId.get(expense.id);
+
+    if (!debtorIds || debtorIds.size === 0) {
+      continue;
+    }
+
+    const exchange = exchangesById.get(expense.exchange);
+    const amount = (expense.cost * (exchange?.value ?? 1)) / debtorIds.size;
+    const senders = sendersByExpenseId.get(expense.id) ?? [];
+
+    for (const debtorId of debtorIds) {
+      if (debtorId === targetPerson.id) {
+        continue;
+      }
+
+      const debtorSenders = senders.filter((sender) => sender.sender === debtorId);
+
+      if (debtorSenders.some((sender) => sender.verified)) {
+        continue;
+      }
+
+      const debtor = peopleById.get(debtorId);
+
+      if (!debtor) {
+        continue;
+      }
+
+      const card = cardsByDebtorId.get(debtor.id) ?? {
+        debtorId: debtor.id,
+        debtorName: debtor.name,
+        total: 0,
+        expenses: []
+      };
+
+      card.total += amount;
+      card.expenses.push({
+        id: String(expense.id),
+        name: expense.name,
+        dateLabel: formatKoreanDate(expense.date),
+        amount,
+        hasPendingSender: debtorSenders.some((sender) => !sender.verified)
+      });
+      cardsByDebtorId.set(debtor.id, card);
+    }
+  }
+
+  return Array.from(cardsByDebtorId.values())
+    .map((card) => ({
+      ...card,
+      expenses: card.expenses.sort((left, right) => Number(right.id) - Number(left.id))
+    }))
+    .sort((left, right) => right.total - left.total);
+}
+
+function formatKoreanDate(date: string) {
+  const parsedDate = new Date(`${date}T00:00:00`);
+
+  return `${parsedDate.getMonth() + 1}월 ${parsedDate.getDate()}일`;
 }
