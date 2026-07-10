@@ -33,7 +33,7 @@ function App() {
 
   return (
     <main className="min-h-screen bg-[#f2f4f6] text-[#111827]">
-      <div className="mx-auto min-h-screen w-full max-w-[430px] overflow-hidden">
+      <div className="min-h-screen w-full overflow-hidden">
         {activeScreen === "root" && (
           <HomeScreen
             snapshot={expenseSnapshot}

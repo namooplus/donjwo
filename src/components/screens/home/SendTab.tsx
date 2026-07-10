@@ -8,7 +8,7 @@ const contacts = [
 
 export function SendTab() {
   return (
-    <div className="grid gap-5 px-5 pb-32 pt-32">
+    <div className="grid gap-5 px-7 pb-32 pt-32 sm:px-9 lg:px-12">
       <section className="rounded-[2rem] bg-white p-5">
         <p className="text-sm font-semibold text-[#8a94a3]">Send money</p>
         <div className="mt-6 flex items-end gap-2">

@@ -7,7 +7,7 @@ const qrCells = Array.from({ length: 25 }, (_, index) => ({
 
 export function ReceiveTab() {
   return (
-    <div className="grid gap-5 px-5 pb-32 pt-32">
+    <div className="grid gap-5 px-7 pb-32 pt-32 sm:px-9 lg:px-12">
       <section className="rounded-[2rem] bg-white p-5 text-center">
         <p className="text-sm font-semibold text-[#8a94a3]">Receive money</p>
         <h1 className="mt-2 text-3xl font-bold text-[#111827]">Share your code</h1>

@@ -29,7 +29,7 @@ export function SummaryTab({ snapshot, onOpenExpenseHistory }: SummaryTabProps) 
   }, [snapshot]);
 
   return (
-    <div className="min-h-screen px-5 pb-36 pt-32">
+    <div className="min-h-screen px-7 pb-36 pt-32 sm:px-9 lg:px-12">
       <section>
         <h1
           className="bg-[linear-gradient(135deg,#374151_0%,#6478f3_30%,#38bdf8_55%,#45d39b_78%,#f6c453_100%)] bg-clip-text font-bold leading-[1.14] tracking-normal text-transparent"

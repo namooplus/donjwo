@@ -21,7 +21,7 @@ export function ExpenseHistoryScreen({ snapshot, onBack }: ExpenseHistoryScreenP
   }, [snapshot]);
 
   return (
-    <div className="min-h-screen px-5 pb-32 pt-32">
+    <div className="min-h-screen px-7 pb-32 pt-32 sm:px-9 lg:px-12">
       <ScreenHeader title="공금 사용 내역" />
 
       <section>
