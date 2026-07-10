@@ -1,8 +1,10 @@
 # Yugain Settlement
 
 Yugain Settlement is a PWA application scaffolded with React, TypeScript, Vite,
-Bun, Biome, and Knip. The starter screen provides an operations dashboard for
-settlement batches and is ready to evolve into a full settlement workflow.
+Bun, Biome, and Knip.
+
+The app is a mobile-first settlement experience backed by Supabase. It currently
+focuses on public fund spending, transfer, and receive flows.
 
 ## Stack
 
@@ -58,12 +60,13 @@ bun run format
 - `src/backend/supabase.ts` creates the typed Supabase client from Vite env
   variables.
 - `src/backend/queries.ts` contains typed Supabase table reads.
-- `src/App.tsx` contains the first application screen.
+- `src/App.tsx` contains the current application shell and page components.
 - `src/main.tsx` mounts React and registers the service worker.
 - `src/styles.css` contains the app styles.
 - `vite.config.ts` configures React and PWA generation.
 - `biome.json` configures formatting and lint checks.
 - `knip.json` configures unused code and dependency checks.
+- `AGENTS.md` contains project-specific instructions for coding agents.
 - `public/icon.svg` is the PWA icon source.
 
 ## Backend Contract
@@ -90,10 +93,10 @@ represented in the live database through `ExpenseDebtor` and `ExpenseSender`.
 `verifiedSender` is derived from `ExpenseSender` rows where `verified` is true.
 
 Use `getSupabaseClient` from `src/backend/supabase.ts` when adding queries.
-The first app screen reads all three tables and shows row counts when the
-Supabase environment variables are configured.
+Use `getBackendSnapshot` from `src/backend/queries.ts` when reading the current
+client-side snapshot.
 
 ## Documentation Maintenance
 
-Keep this README and `AGNETS.md` updated whenever scripts, tooling, app
+Keep this README and `AGENTS.md` updated whenever scripts, tooling, app
 structure, or development conventions change.
