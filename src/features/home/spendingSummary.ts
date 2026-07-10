@@ -13,8 +13,10 @@ type ExpenseListItem = {
   payerName: string;
   dateLabel: string;
   date: string;
-  exchangeName: string;
+  debtorCount: number;
+  cost: number;
   realCost: number;
+  isSettled: boolean;
 };
 
 const weekOneStart = new Date("2026-06-22T00:00:00");
@@ -42,6 +44,13 @@ function formatDateRange(startDate: Date) {
 
 export function formatWon(amount: number) {
   return Math.round(amount).toLocaleString("ko-KR");
+}
+
+export function formatDollar(amount: number) {
+  return amount.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2
+  });
 }
 
 export function getRealExpenseTotal(snapshot: BackendSnapshot) {
@@ -98,11 +107,42 @@ export function getExpenseListItems(snapshot: BackendSnapshot): ExpenseListItem[
   const exchangesById = new Map(
     snapshot.exchanges.map((exchange) => [exchange.id, exchange])
   );
+  const debtorCountsByExpenseId = snapshot.expenseDebtors.reduce(
+    (counts, expenseDebtor) => {
+      counts.set(expenseDebtor.expense, (counts.get(expenseDebtor.expense) ?? 0) + 1);
+
+      return counts;
+    },
+    new Map<number, number>()
+  );
+  const debtorIdsByExpenseId = snapshot.expenseDebtors.reduce(
+    (debtors, expenseDebtor) => {
+      const expenseDebtors = debtors.get(expenseDebtor.expense) ?? new Set<number>();
+      expenseDebtors.add(expenseDebtor.debtor);
+      debtors.set(expenseDebtor.expense, expenseDebtors);
+
+      return debtors;
+    },
+    new Map<number, Set<number>>()
+  );
+  const sendersByExpenseId = snapshot.expenseSenders.reduce(
+    (senders, expenseSender) => {
+      const expenseSenders = senders.get(expenseSender.expense) ?? [];
+      expenseSenders.push(expenseSender);
+      senders.set(expenseSender.expense, expenseSenders);
+
+      return senders;
+    },
+    new Map<number, typeof snapshot.expenseSenders>()
+  );
 
   return snapshot.expenses
     .map((expense) => {
       const payer = peopleById.get(expense.payer);
       const exchange = exchangesById.get(expense.exchange);
+      const exchangeRate = exchange?.value ?? 1;
+      const debtorIds = debtorIdsByExpenseId.get(expense.id) ?? new Set<number>();
+      const senders = sendersByExpenseId.get(expense.id) ?? [];
 
       return {
         id: String(expense.id),
@@ -110,8 +150,10 @@ export function getExpenseListItems(snapshot: BackendSnapshot): ExpenseListItem[
         payerName: payer?.name ?? "알 수 없음",
         dateLabel: formatKoreanDate(expense.date),
         date: expense.date,
-        exchangeName: exchange?.name ?? "KRW",
-        realCost: expense.cost * (exchange?.value ?? 1)
+        debtorCount: debtorCountsByExpenseId.get(expense.id) ?? 0,
+        cost: expense.cost,
+        realCost: expense.cost * exchangeRate,
+        isSettled: isExpenseSettled(debtorIds, senders)
       };
     })
     .sort((left, right) => {
@@ -123,6 +165,17 @@ export function getExpenseListItems(snapshot: BackendSnapshot): ExpenseListItem[
 
       return Number(right.id) - Number(left.id);
     });
+}
+
+function isExpenseSettled(
+  debtorIds: Set<number>,
+  senders: { sender: number; verified: boolean }[]
+) {
+  if (debtorIds.size === 0 || senders.length !== debtorIds.size) {
+    return false;
+  }
+
+  return senders.every((sender) => sender.verified && debtorIds.has(sender.sender));
 }
 
 function formatKoreanDate(date: string) {
