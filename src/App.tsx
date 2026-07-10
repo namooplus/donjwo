@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
+import type { BackendSnapshot } from "@/backend/queries";
 import { getBackendSnapshot } from "@/backend/queries";
 import { hasSupabaseConfig } from "@/backend/supabase";
 import { ExpenseHistoryScreen } from "@/components/screens/expense-history";
 import { HomeScreen } from "@/components/screens/home";
-import type { ExpenseStatus } from "@/features/home/spendingSummary";
 
 type ScreenKey = "root" | "expense-history";
 
 function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenKey>("root");
-  const [expenseStatus, setExpenseStatus] = useState<ExpenseStatus>(() =>
-    hasSupabaseConfig() ? { kind: "loading" } : { kind: "missing-config" }
-  );
+  const [expenseSnapshot, setExpenseSnapshot] = useState<BackendSnapshot | null>(null);
 
   useEffect(() => {
     if (!hasSupabaseConfig()) {
@@ -23,17 +21,10 @@ function App() {
     getBackendSnapshot()
       .then((snapshot) => {
         if (isCurrent) {
-          setExpenseStatus({ kind: "ready", snapshot });
+          setExpenseSnapshot(snapshot);
         }
       })
-      .catch((error: unknown) => {
-        if (isCurrent) {
-          setExpenseStatus({
-            kind: "error",
-            message: error instanceof Error ? error.message : "Could not load expenses."
-          });
-        }
-      });
+      .catch(() => {});
 
     return () => {
       isCurrent = false;
@@ -45,13 +36,13 @@ function App() {
       <div className="mx-auto min-h-screen w-full max-w-[430px] overflow-hidden">
         {activeScreen === "root" && (
           <HomeScreen
-            status={expenseStatus}
+            snapshot={expenseSnapshot}
             onOpenExpenseHistory={() => setActiveScreen("expense-history")}
           />
         )}
         {activeScreen === "expense-history" && (
           <ExpenseHistoryScreen
-            status={expenseStatus}
+            snapshot={expenseSnapshot}
             onBack={() => setActiveScreen("root")}
           />
         )}

@@ -1,11 +1,5 @@
 import type { BackendSnapshot } from "@/backend/queries";
 
-export type ExpenseStatus =
-  | { kind: "missing-config" }
-  | { kind: "loading" }
-  | { kind: "ready"; snapshot: BackendSnapshot }
-  | { kind: "error"; message: string };
-
 type WeeklyExpenseSummary = {
   id: string;
   label: string;

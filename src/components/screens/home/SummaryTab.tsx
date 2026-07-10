@@ -1,20 +1,21 @@
 import { ChevronRight } from "lucide-react";
 import { useMemo } from "react";
+import type { BackendSnapshot } from "@/backend/queries";
+import { LoadingCard } from "@/components/common/LoadingCard";
 import {
-  type ExpenseStatus,
   formatWon,
   getRealExpenseTotal,
   getWeeklyExpenseSummary
 } from "@/features/home/spendingSummary";
 
 type SummaryTabProps = {
-  status: ExpenseStatus;
+  snapshot: BackendSnapshot | null;
   onOpenExpenseHistory: () => void;
 };
 
-export function SummaryTab({ status, onOpenExpenseHistory }: SummaryTabProps) {
+export function SummaryTab({ snapshot, onOpenExpenseHistory }: SummaryTabProps) {
   const summary = useMemo(() => {
-    if (status.kind !== "ready") {
+    if (!snapshot) {
       return {
         total: 0,
         weeks: []
@@ -22,10 +23,10 @@ export function SummaryTab({ status, onOpenExpenseHistory }: SummaryTabProps) {
     }
 
     return {
-      total: getRealExpenseTotal(status.snapshot),
-      weeks: getWeeklyExpenseSummary(status.snapshot).reverse()
+      total: getRealExpenseTotal(snapshot),
+      weeks: getWeeklyExpenseSummary(snapshot).reverse()
     };
-  }, [status]);
+  }, [snapshot]);
 
   return (
     <div className="min-h-screen px-5 pb-36 pt-32">
@@ -45,23 +46,7 @@ export function SummaryTab({ status, onOpenExpenseHistory }: SummaryTabProps) {
       <section className="relative mt-16 pl-9">
         <div className="absolute bottom-1 left-[0.8125rem] top-1 w-0.5 rounded-full bg-[#d9dee6]" />
 
-        {status.kind === "missing-config" && (
-          <div className="rounded-[1.5rem] bg-white p-5 text-[15px] font-semibold leading-6 text-[#8a94a3]">
-            Supabase 설정이 필요해요.
-          </div>
-        )}
-
-        {status.kind === "loading" && (
-          <div className="rounded-[1.5rem] bg-white p-5 text-[15px] font-semibold leading-6 text-[#8a94a3]">
-            지출을 불러오는 중이에요.
-          </div>
-        )}
-
-        {status.kind === "error" && (
-          <div className="rounded-[1.5rem] bg-white p-5 text-[15px] font-semibold leading-6 text-[#8a94a3]">
-            지출을 불러오지 못했어요.
-          </div>
-        )}
+        {!snapshot && <LoadingCard />}
 
         {summary.weeks.length > 0 && (
           <div className="grid gap-7">

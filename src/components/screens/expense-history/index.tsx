@@ -1,63 +1,33 @@
-import { ArrowLeft, ReceiptText } from "lucide-react";
+import { ReceiptText } from "lucide-react";
 import { useMemo } from "react";
-import {
-  type ExpenseStatus,
-  formatWon,
-  getExpenseListItems
-} from "@/features/home/spendingSummary";
+import type { BackendSnapshot } from "@/backend/queries";
+import { BackButton } from "@/components/common/BackButton";
+import { LoadingCard } from "@/components/common/LoadingCard";
+import { ScreenHeader } from "@/components/common/ScreenHeader";
+import { formatWon, getExpenseListItems } from "@/features/home/spendingSummary";
 
 type ExpenseHistoryScreenProps = {
-  status: ExpenseStatus;
+  snapshot: BackendSnapshot | null;
   onBack: () => void;
 };
 
-export function ExpenseHistoryScreen({ status, onBack }: ExpenseHistoryScreenProps) {
+export function ExpenseHistoryScreen({ snapshot, onBack }: ExpenseHistoryScreenProps) {
   const expenses = useMemo(() => {
-    if (status.kind !== "ready") {
+    if (!snapshot) {
       return [];
     }
 
-    return getExpenseListItems(status.snapshot);
-  }, [status]);
+    return getExpenseListItems(snapshot);
+  }, [snapshot]);
 
   return (
-    <div className="min-h-screen bg-white px-5 pb-10 pt-5">
-      <header className="sticky top-0 z-10 -mx-5 bg-white/92 px-5 pb-4 pt-2 backdrop-blur-xl">
-        <div className="grid h-11 grid-cols-[2.75rem_1fr_2.75rem] items-center">
-          <button
-            className="grid size-11 place-items-center rounded-full text-[#111827] hover:bg-[#f4f6f8]"
-            type="button"
-            aria-label="뒤로 가기"
-            onClick={onBack}
-          >
-            <ArrowLeft className="size-6" aria-hidden="true" />
-          </button>
-          <h1 className="text-center text-[17px] font-bold text-[#111827]">
-            공금 사용 내역
-          </h1>
-        </div>
-      </header>
+    <div className="min-h-screen px-5 pb-32 pt-32">
+      <ScreenHeader title="공금 사용 내역" />
 
-      <section className="pt-5">
-        {status.kind === "missing-config" && (
-          <p className="rounded-[1.25rem] bg-[#f7f8fa] p-5 text-[15px] font-semibold text-[#8a94a3]">
-            Supabase 설정이 필요해요.
-          </p>
-        )}
+      <section>
+        {!snapshot && <LoadingCard />}
 
-        {status.kind === "loading" && (
-          <p className="rounded-[1.25rem] bg-[#f7f8fa] p-5 text-[15px] font-semibold text-[#8a94a3]">
-            지출을 불러오는 중이에요.
-          </p>
-        )}
-
-        {status.kind === "error" && (
-          <p className="rounded-[1.25rem] bg-[#f7f8fa] p-5 text-[15px] font-semibold text-[#8a94a3]">
-            지출을 불러오지 못했어요.
-          </p>
-        )}
-
-        {status.kind === "ready" && expenses.length === 0 && (
+        {snapshot && expenses.length === 0 && (
           <p className="rounded-[1.25rem] bg-[#f7f8fa] p-5 text-[15px] font-semibold text-[#8a94a3]">
             아직 등록된 지출이 없어요.
           </p>
@@ -87,6 +57,8 @@ export function ExpenseHistoryScreen({ status, onBack }: ExpenseHistoryScreenPro
           </div>
         )}
       </section>
+
+      <BackButton onClick={onBack} />
     </div>
   );
 }

@@ -1,25 +1,25 @@
 import { useState } from "react";
-import { AppHeader } from "@/components/common/AppHeader";
+import type { BackendSnapshot } from "@/backend/queries";
 import { FloatingTabs, type HomeTabKey } from "@/components/common/FloatingTabs";
+import { ScreenHeader } from "@/components/common/ScreenHeader";
 import { ReceiveTab } from "@/components/screens/home/ReceiveTab";
 import { SendTab } from "@/components/screens/home/SendTab";
 import { SummaryTab } from "@/components/screens/home/SummaryTab";
-import type { ExpenseStatus } from "@/features/home/spendingSummary";
 
 type HomeScreenProps = {
-  status: ExpenseStatus;
+  snapshot: BackendSnapshot | null;
   onOpenExpenseHistory: () => void;
 };
 
-export function HomeScreen({ status, onOpenExpenseHistory }: HomeScreenProps) {
+export function HomeScreen({ snapshot, onOpenExpenseHistory }: HomeScreenProps) {
   const [activeTab, setActiveTab] = useState<HomeTabKey>("summary");
 
   return (
     <>
-      <AppHeader />
+      <ScreenHeader title="공금" />
 
       {activeTab === "summary" && (
-        <SummaryTab status={status} onOpenExpenseHistory={onOpenExpenseHistory} />
+        <SummaryTab snapshot={snapshot} onOpenExpenseHistory={onOpenExpenseHistory} />
       )}
       {activeTab === "send" && <SendTab />}
       {activeTab === "receive" && <ReceiveTab />}

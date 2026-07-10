@@ -63,6 +63,7 @@ bun run format
 - `src/backend/queries.ts` contains typed Supabase table reads.
 - `src/App.tsx` contains the current application shell composition.
 - `src/components/common` contains shared UI components.
+- `ScreenHeader` and `BackButton` provide shared screen chrome.
 - `src/components/screens/home/index.tsx` contains the root Home screen.
 - `src/components/screens/home` contains Summary, Send, and Receive tab
   content.
@@ -102,6 +103,8 @@ represented in the live database through `ExpenseDebtor` and `ExpenseSender`.
 Use `getSupabaseClient` from `src/backend/supabase.ts` when adding queries.
 Use `getBackendSnapshot` from `src/backend/queries.ts` when reading the current
 client-side snapshot.
+Expense UI treats a missing snapshot as loading, including config or fetch
+failure cases.
 
 ## Documentation Maintenance
 

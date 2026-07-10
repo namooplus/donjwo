@@ -29,6 +29,8 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
 
 - `src/App.tsx` contains the current app screen composition.
 - Shared UI belongs in `src/components/common`.
+- Fixed screen titles use `ScreenHeader`; floating screen back actions use
+  `BackButton`.
 - `src/components/screens/home/index.tsx` owns the root Home screen and its
   Summary, Send, and Receive tabs.
 - Home screen tab content belongs in `src/components/screens/home`.
@@ -52,6 +54,8 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
 - Keep typed Supabase reads and writes under `src/backend`.
 - Prefer `getBackendSnapshot` from `src/backend/queries.ts` for the current
   client-side snapshot.
+- Expense UI receives `BackendSnapshot | null`; `null` is the loading state and
+  remains as a rotating spinner when config or fetch fails.
 - The Home screen treats real expense in won as `expense.cost * exchange.value`.
   If an exchange row is missing, it falls back to `expense.cost`.
 - The expense history screen lists the same real expense amount in won.
