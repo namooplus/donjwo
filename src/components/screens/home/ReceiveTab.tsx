@@ -5,7 +5,7 @@ const qrCells = Array.from({ length: 25 }, (_, index) => ({
   filled: [0, 1, 2, 5, 7, 10, 11, 12, 18, 20, 22, 23, 24].includes(index)
 }));
 
-export function ReceivePage() {
+export function ReceiveTab() {
   return (
     <div className="grid gap-5 px-5 pb-32 pt-32">
       <section className="rounded-[2rem] bg-white p-5 text-center">

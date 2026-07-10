@@ -1,16 +1,18 @@
+import { ChevronRight } from "lucide-react";
 import { useMemo } from "react";
 import {
   type ExpenseStatus,
   formatWon,
   getRealExpenseTotal,
   getWeeklyExpenseSummary
-} from "../features/home/spendingSummary";
+} from "@/features/home/spendingSummary";
 
-type HomePageProps = {
+type SummaryTabProps = {
   status: ExpenseStatus;
+  onOpenExpenseHistory: () => void;
 };
 
-export function HomePage({ status }: HomePageProps) {
+export function SummaryTab({ status, onOpenExpenseHistory }: SummaryTabProps) {
   const summary = useMemo(() => {
     if (status.kind !== "ready") {
       return {
@@ -83,6 +85,15 @@ export function HomePage({ status }: HomePageProps) {
             ))}
           </div>
         )}
+
+        <button
+          className="mt-10 flex h-13 w-full items-center justify-center gap-1.5 rounded-[1.25rem] bg-white text-[15px] font-bold text-[#4b5563] shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition hover:text-[#111827]"
+          type="button"
+          onClick={onOpenExpenseHistory}
+        >
+          자세히 보기
+          <ChevronRight className="size-4" aria-hidden="true" />
+        </button>
       </section>
     </div>
   );

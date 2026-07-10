@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
-import { getBackendSnapshot } from "./backend/queries";
-import { hasSupabaseConfig } from "./backend/supabase";
-import { AppHeader } from "./components/AppHeader";
-import { FloatingTabs } from "./components/FloatingTabs";
-import type { ExpenseStatus } from "./features/home/spendingSummary";
-import type { TabKey } from "./navigation/tabs";
-import { HomePage } from "./pages/HomePage";
-import { ReceivePage } from "./pages/ReceivePage";
-import { SendPage } from "./pages/SendPage";
+import { getBackendSnapshot } from "@/backend/queries";
+import { hasSupabaseConfig } from "@/backend/supabase";
+import { ExpenseHistoryScreen } from "@/components/screens/expense-history";
+import { HomeScreen } from "@/components/screens/home";
+import type { ExpenseStatus } from "@/features/home/spendingSummary";
+
+type ScreenKey = "root" | "expense-history";
 
 function App() {
-  const [activeTab, setActiveTab] = useState<TabKey>("home");
+  const [activeScreen, setActiveScreen] = useState<ScreenKey>("root");
   const [expenseStatus, setExpenseStatus] = useState<ExpenseStatus>(() =>
     hasSupabaseConfig() ? { kind: "loading" } : { kind: "missing-config" }
   );
@@ -45,14 +43,19 @@ function App() {
   return (
     <main className="min-h-screen bg-[#f2f4f6] text-[#111827]">
       <div className="mx-auto min-h-screen w-full max-w-[430px] overflow-hidden">
-        <AppHeader />
-
-        {activeTab === "home" && <HomePage status={expenseStatus} />}
-        {activeTab === "send" && <SendPage />}
-        {activeTab === "receive" && <ReceivePage />}
+        {activeScreen === "root" && (
+          <HomeScreen
+            status={expenseStatus}
+            onOpenExpenseHistory={() => setActiveScreen("expense-history")}
+          />
+        )}
+        {activeScreen === "expense-history" && (
+          <ExpenseHistoryScreen
+            status={expenseStatus}
+            onBack={() => setActiveScreen("root")}
+          />
+        )}
       </div>
-
-      <FloatingTabs activeTab={activeTab} onChange={setActiveTab} />
     </main>
   );
 }

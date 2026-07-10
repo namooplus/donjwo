@@ -6,7 +6,7 @@ const contacts = [
   { name: "Hana", label: "Saved", color: "bg-[#fff1dc] text-[#c46b00]" }
 ];
 
-export function SendPage() {
+export function SendTab() {
   return (
     <div className="grid gap-5 px-5 pb-32 pt-32">
       <section className="rounded-[2rem] bg-white p-5">

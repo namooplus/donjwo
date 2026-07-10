@@ -1,4 +1,4 @@
-import type { BackendSnapshot } from "../../backend/queries";
+import type { BackendSnapshot } from "@/backend/queries";
 
 export type ExpenseStatus =
   | { kind: "missing-config" }
@@ -11,6 +11,16 @@ type WeeklyExpenseSummary = {
   label: string;
   dateRange: string;
   total: number;
+};
+
+type ExpenseListItem = {
+  id: string;
+  name: string;
+  payerName: string;
+  dateLabel: string;
+  date: string;
+  exchangeName: string;
+  realCost: number;
 };
 
 const weekOneStart = new Date("2026-06-22T00:00:00");
@@ -87,4 +97,42 @@ export function getWeeklyExpenseSummary(
       total
     };
   });
+}
+
+export function getExpenseListItems(snapshot: BackendSnapshot): ExpenseListItem[] {
+  const peopleById = new Map(snapshot.people.map((person) => [person.id, person]));
+  const exchangesById = new Map(
+    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
+  );
+
+  return snapshot.expenses
+    .map((expense) => {
+      const payer = peopleById.get(expense.payer);
+      const exchange = exchangesById.get(expense.exchange);
+
+      return {
+        id: String(expense.id),
+        name: expense.name,
+        payerName: payer?.name ?? "알 수 없음",
+        dateLabel: formatKoreanDate(expense.date),
+        date: expense.date,
+        exchangeName: exchange?.name ?? "KRW",
+        realCost: expense.cost * (exchange?.value ?? 1)
+      };
+    })
+    .sort((left, right) => {
+      const dateCompare = right.date.localeCompare(left.date);
+
+      if (dateCompare !== 0) {
+        return dateCompare;
+      }
+
+      return Number(right.id) - Number(left.id);
+    });
+}
+
+function formatKoreanDate(date: string) {
+  const parsedDate = new Date(`${date}T00:00:00`);
+
+  return `${parsedDate.getMonth() + 1}월 ${parsedDate.getDate()}일`;
 }

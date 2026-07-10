@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { SupabaseDatabase } from "./schema";
+import type { SupabaseDatabase } from "@/backend/schema";
 
 type YugainSupabaseClient = SupabaseClient<SupabaseDatabase>;
 

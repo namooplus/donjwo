@@ -12,6 +12,7 @@ focuses on public fund spending, transfer, and receive flows.
 - UI: React with TypeScript
 - Build tool: Vite
 - PWA support: `vite-plugin-pwa`
+- Source import alias: `@/`
 - Backend client: Supabase JS
 - Formatting and linting: Biome
 - Unused dependency and file checks: Knip
@@ -61,9 +62,11 @@ bun run format
   variables.
 - `src/backend/queries.ts` contains typed Supabase table reads.
 - `src/App.tsx` contains the current application shell composition.
-- `src/components` contains shared shell components.
-- `src/navigation` contains tab metadata and tab types.
-- `src/pages` contains page-level components.
+- `src/components/common` contains shared UI components.
+- `src/components/screens/home/index.tsx` contains the root Home screen.
+- `src/components/screens/home` contains Summary, Send, and Receive tab
+  content.
+- `src/components/screens` also contains pushed screen components.
 - `src/features/home` contains Home spending summary helpers.
 - `src/main.tsx` mounts React and registers the service worker.
 - `src/styles.css` contains the app styles.

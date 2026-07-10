@@ -1,8 +1,22 @@
-import { type TabKey, tabs } from "../navigation/tabs";
+import { ArrowDownLeft, Home, Send } from "lucide-react";
+
+export type HomeTabKey = "summary" | "send" | "receive";
+
+type Tab = {
+  key: HomeTabKey;
+  label: string;
+  icon: typeof Home;
+};
+
+const tabs: Tab[] = [
+  { key: "summary", label: "Summary", icon: Home },
+  { key: "send", label: "Send", icon: Send },
+  { key: "receive", label: "Receive", icon: ArrowDownLeft }
+];
 
 type FloatingTabsProps = {
-  activeTab: TabKey;
-  onChange: (tab: TabKey) => void;
+  activeTab: HomeTabKey;
+  onChange: (tab: HomeTabKey) => void;
 };
 
 export function FloatingTabs({ activeTab, onChange }: FloatingTabsProps) {

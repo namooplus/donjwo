@@ -1,5 +1,11 @@
-import type { Exchange, Expense, ExpenseDebtor, ExpenseSender, Person } from "./schema";
-import { getSupabaseClient } from "./supabase";
+import type {
+  Exchange,
+  Expense,
+  ExpenseDebtor,
+  ExpenseSender,
+  Person
+} from "@/backend/schema";
+import { getSupabaseClient } from "@/backend/supabase";
 
 export interface BackendSnapshot {
   people: Person[];
