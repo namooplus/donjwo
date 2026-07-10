@@ -6,7 +6,7 @@ import {
   QrCode,
   ReceiptText,
   Send,
-  ShieldCheck
+  ShieldCheck,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type BackendSnapshot, getBackendSnapshot } from "./backend/queries";
@@ -29,18 +29,18 @@ type Tab = {
 const tabs: Tab[] = [
   { key: "home", label: "Home", icon: Home },
   { key: "send", label: "Send", icon: Send },
-  { key: "receive", label: "Receive", icon: ArrowDownLeft }
+  { key: "receive", label: "Receive", icon: ArrowDownLeft },
 ];
 
 const contacts = [
   { name: "Mina", label: "Recent", color: "bg-[#eaf2ff] text-[#2b6eea]" },
   { name: "Joon", label: "Friend", color: "bg-[#ecf9f2] text-[#14804a]" },
-  { name: "Hana", label: "Saved", color: "bg-[#fff1dc] text-[#c46b00]" }
+  { name: "Hana", label: "Saved", color: "bg-[#fff1dc] text-[#c46b00]" },
 ];
 
 const qrCells = Array.from({ length: 25 }, (_, index) => ({
   id: `qr-cell-${index + 1}`,
-  filled: [0, 1, 2, 5, 7, 10, 11, 12, 18, 20, 22, 23, 24].includes(index)
+  filled: [0, 1, 2, 5, 7, 10, 11, 12, 18, 20, 22, 23, 24].includes(index),
 }));
 
 const weekOneStart = new Date("2026-06-22T00:00:00");
@@ -72,7 +72,7 @@ function formatWon(amount: number) {
 
 function getRealExpenseTotal(snapshot: BackendSnapshot) {
   const exchangesById = new Map(
-    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
+    snapshot.exchanges.map((exchange) => [exchange.id, exchange]),
   );
 
   return snapshot.expenses.reduce((total, expense) => {
@@ -84,13 +84,15 @@ function getRealExpenseTotal(snapshot: BackendSnapshot) {
 
 function getWeeklyExpenseSummary(snapshot: BackendSnapshot) {
   const exchangesById = new Map(
-    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
+    snapshot.exchanges.map((exchange) => [exchange.id, exchange]),
   );
   const currentWeekStart = getMondayStart(new Date());
   const weekCount =
     Math.max(
       0,
-      Math.floor((currentWeekStart.getTime() - weekOneStart.getTime()) / (dayInMs * 7))
+      Math.floor(
+        (currentWeekStart.getTime() - weekOneStart.getTime()) / (dayInMs * 7),
+      ),
     ) + 1;
 
   return Array.from({ length: weekCount }, (_, index) => {
@@ -112,15 +114,15 @@ function getWeeklyExpenseSummary(snapshot: BackendSnapshot) {
       id: `week-${index + 1}`,
       label: `${index + 1}주차`,
       dateRange: formatDateRange(startDate),
-      total
+      total,
     };
   });
 }
 
 function AppHeader() {
   return (
-    <header className="fixed left-1/2 top-0 z-10 w-full max-w-[430px] -translate-x-1/2 bg-[#f2f4f6] px-5 pb-8 pt-5">
-      <h1 className="bg-gradient-to-b from-[#111827] from-55% to-[#111827]/0 bg-clip-text text-4xl font-bold tracking-normal text-transparent">
+    <header className="fixed left-1/2 top-0 z-10 w-full max-w-[430px] bg-linear-to-b from-[#f2f4f6] from-55% to-[#f2f4f6]/0 -translate-x-1/2 px-5 pb-8 pt-5">
+      <h1 className="text-[#111827] text-4xl font-bold tracking-normal">
         공금
       </h1>
     </header>
@@ -129,7 +131,7 @@ function AppHeader() {
 
 function FloatingTabs({
   activeTab,
-  onChange
+  onChange,
 }: {
   activeTab: TabKey;
   onChange: (tab: TabKey) => void;
@@ -147,7 +149,7 @@ function FloatingTabs({
           <button
             className={[
               "flex h-12 min-w-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition",
-              isActive ? "floating-tab-active" : "floating-tab-inactive"
+              isActive ? "floating-tab-active" : "floating-tab-inactive",
             ].join(" ")}
             key={tab.key}
             type="button"
@@ -169,13 +171,13 @@ function HomePage({ status }: { status: ExpenseStatus }) {
     if (status.kind !== "ready") {
       return {
         total: 0,
-        weeks: []
+        weeks: [],
       };
     }
 
     return {
       total: getRealExpenseTotal(status.snapshot),
-      weeks: getWeeklyExpenseSummary(status.snapshot)
+      weeks: getWeeklyExpenseSummary(status.snapshot),
     };
   }, [status]);
 
@@ -220,7 +222,9 @@ function HomePage({ status }: { status: ExpenseStatus }) {
                 <div>
                   <div className="flex items-baseline justify-between gap-4">
                     <div>
-                      <h2 className="text-xl font-bold text-[#111827]">{week.label}</h2>
+                      <h2 className="text-xl font-bold text-[#111827]">
+                        {week.label}
+                      </h2>
                       <p className="mt-1 text-sm font-semibold text-[#9aa3af]">
                         {week.dateRange}
                       </p>
@@ -237,7 +241,7 @@ function HomePage({ status }: { status: ExpenseStatus }) {
       </section>
 
       <section className="pt-24">
-        <h1 className="whitespace-pre-line text-[3.6rem] font-bold leading-[1.08] tracking-normal text-[#111827]">
+        <h1 className="whitespace-pre-line text-[3.3rem] font-bold leading-[1.2] tracking-normal text-[#111827]">
           {`지금까지\n${formatWon(summary.total)}원을\n썼어요`}
         </h1>
       </section>
@@ -253,7 +257,9 @@ function SendPage() {
         <p className="text-sm font-semibold text-[#8a94a3]">Send money</p>
         <div className="mt-6 flex items-end gap-2">
           <span className="pb-2 text-3xl font-bold text-[#8a94a3]">$</span>
-          <h1 className="text-6xl font-bold tracking-normal text-[#111827]">125</h1>
+          <h1 className="text-6xl font-bold tracking-normal text-[#111827]">
+            125
+          </h1>
           <span className="pb-3 text-xl font-bold text-[#8a94a3]">.00</span>
         </div>
         <div className="mt-6 rounded-3xl bg-[#f4f6f8] px-4 py-4">
@@ -265,10 +271,15 @@ function SendPage() {
               </span>
               <div>
                 <p className="font-bold text-[#111827]">Mina Kim</p>
-                <p className="text-sm font-medium text-[#8a94a3]">m.kim@yugain</p>
+                <p className="text-sm font-medium text-[#8a94a3]">
+                  m.kim@yugain
+                </p>
               </div>
             </div>
-            <ChevronRight className="size-5 text-[#8a94a3]" aria-hidden="true" />
+            <ChevronRight
+              className="size-5 text-[#8a94a3]"
+              aria-hidden="true"
+            />
           </div>
         </div>
       </section>
@@ -299,7 +310,9 @@ function SendPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-[#111827]">{contact.name}</p>
-                <p className="text-sm font-medium text-[#8a94a3]">{contact.label}</p>
+                <p className="text-sm font-medium text-[#8a94a3]">
+                  {contact.label}
+                </p>
               </div>
               <Send className="size-5 text-[#8a94a3]" aria-hidden="true" />
             </button>
@@ -323,7 +336,9 @@ function ReceivePage() {
     <div className="grid gap-5 px-5 pb-32 pt-32">
       <section className="rounded-[2rem] bg-white p-5 text-center">
         <p className="text-sm font-semibold text-[#8a94a3]">Receive money</p>
-        <h1 className="mt-2 text-3xl font-bold text-[#111827]">Share your code</h1>
+        <h1 className="mt-2 text-3xl font-bold text-[#111827]">
+          Share your code
+        </h1>
 
         <div className="mx-auto mt-7 grid size-64 max-w-full place-items-center rounded-[2rem] bg-[#f4f6f8] p-5">
           <div className="grid size-full grid-cols-5 gap-2 rounded-3xl bg-white p-4">
@@ -331,7 +346,7 @@ function ReceivePage() {
               <span
                 className={[
                   "rounded-md",
-                  cell.filled ? "bg-[#111827]" : "bg-[#dfe5ec]"
+                  cell.filled ? "bg-[#111827]" : "bg-[#dfe5ec]",
                 ].join(" ")}
                 key={cell.id}
               />
@@ -368,7 +383,7 @@ function ReceivePage() {
 function App() {
   const [activeTab, setActiveTab] = useState<TabKey>("home");
   const [expenseStatus, setExpenseStatus] = useState<ExpenseStatus>(() =>
-    hasSupabaseConfig() ? { kind: "loading" } : { kind: "missing-config" }
+    hasSupabaseConfig() ? { kind: "loading" } : { kind: "missing-config" },
   );
 
   useEffect(() => {
@@ -388,7 +403,10 @@ function App() {
         if (isCurrent) {
           setExpenseStatus({
             kind: "error",
-            message: error instanceof Error ? error.message : "Could not load expenses."
+            message:
+              error instanceof Error
+                ? error.message
+                : "Could not load expenses.",
           });
         }
       });
