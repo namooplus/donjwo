@@ -26,13 +26,17 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
 
 ## App Structure
 
-- `src/App.tsx` contains the current tabbed app shell and page components.
+- `src/App.tsx` contains the current tabbed app shell composition.
+- Shared shell components live in `src/components`.
+- Tab metadata and tab types live in `src/navigation`.
+- Page-level components live in `src/pages`.
+- Home spending summary helpers live in `src/features/home`.
 - The app has three tabs: Home, Send, and Receive.
 - The floating bottom navigation is icon-only. Preserve `aria-label` values for
   accessibility when changing tab buttons.
 - The fixed header shows `공금`. Its fade is applied to the H1 text itself.
-- The Home screen is intentionally scrollable and scrolls to the bottom on
-  mount and after Supabase expense data loads.
+- The Home screen shows the total spending summary above the timeline and lists
+  weekly items from latest to oldest.
 
 ## Supabase Data Rules
 

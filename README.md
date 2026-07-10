@@ -60,7 +60,11 @@ bun run format
 - `src/backend/supabase.ts` creates the typed Supabase client from Vite env
   variables.
 - `src/backend/queries.ts` contains typed Supabase table reads.
-- `src/App.tsx` contains the current application shell and page components.
+- `src/App.tsx` contains the current application shell composition.
+- `src/components` contains shared shell components.
+- `src/navigation` contains tab metadata and tab types.
+- `src/pages` contains page-level components.
+- `src/features/home` contains Home spending summary helpers.
 - `src/main.tsx` mounts React and registers the service worker.
 - `src/styles.css` contains the app styles.
 - `vite.config.ts` configures React and PWA generation.
