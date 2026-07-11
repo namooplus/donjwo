@@ -17,6 +17,7 @@
     min-width: 320px;
     min-height: 100vh;
     margin: 0;
+    overflow: hidden;
     overscroll-behavior: none;
     -webkit-user-select: none;
     user-select: none;
@@ -42,9 +43,72 @@
   color: #6b7280;
 }
 
+.app-screen-frame {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #f2f4f6;
+  contain: paint;
+}
+
+.app-screen-transition {
+  position: absolute;
+  inset: 0;
+  min-height: 100svh;
+  overflow-y: auto;
+  background: #f2f4f6;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-screen-transition-forward > :not(header):not(.fixed):not(:has(> header)),
+.app-screen-transition-forward > :has(> header) > :not(header):not(.fixed) {
+  animation: app-screen-push 340ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+
+.app-screen-transition-back > :not(header):not(.fixed):not(:has(> header)),
+.app-screen-transition-back > :has(> header) > :not(header):not(.fixed) {
+  animation: app-screen-pop 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+
 @media (hover: hover) {
   .floating-tab-inactive:hover {
     background: #f3f4f6;
     color: #111827;
+  }
+}
+
+@keyframes app-screen-push {
+  from {
+    opacity: 0.96;
+    transform: translate3d(22%, 0, 0) scale(0.992);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes app-screen-pop {
+  from {
+    opacity: 0.98;
+    transform: translate3d(-18%, 0, 0) scale(0.996);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-screen-transition-forward > :not(header):not(.fixed):not(:has(> header)),
+  .app-screen-transition-forward > :has(> header) > :not(header):not(.fixed),
+  .app-screen-transition-back > :not(header):not(.fixed):not(:has(> header)),
+  .app-screen-transition-back > :has(> header) > :not(header):not(.fixed) {
+    animation: none;
   }
 }

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import {
@@ -15,14 +16,49 @@ import { HomeScreen } from "@/components/screens/home";
 import { SplashScreen } from "@/components/screens/splash";
 
 type ScreenKey = "home" | "expense-history" | "expense-history-detail" | "expense-add";
+type NavigationDirection = "forward" | "back";
+
+const screenDepth: Record<ScreenKey, number> = {
+  home: 0,
+  "expense-history": 1,
+  "expense-history-detail": 2,
+  "expense-add": 2
+};
+
+function getNavigationDirection(
+  currentScreen: ScreenKey,
+  nextScreen: ScreenKey
+): NavigationDirection {
+  return screenDepth[nextScreen] >= screenDepth[currentScreen] ? "forward" : "back";
+}
 
 function App() {
-  const [activeScreen, setActiveScreen] = useState<ScreenKey>("home");
+  const [navigation, setNavigation] = useState<{
+    screen: ScreenKey;
+    direction: NavigationDirection;
+  }>({
+    screen: "home",
+    direction: "forward"
+  });
   const [expenseSnapshot, setExpenseSnapshot] = useState<BackendSnapshot | null>(null);
   const [isInitialSnapshotLoading, setIsInitialSnapshotLoading] = useState(
     hasSupabaseConfig()
   );
   const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(null);
+  const activeScreen = navigation.screen;
+
+  const navigateTo = (nextScreen: ScreenKey) => {
+    setNavigation((currentNavigation) => {
+      if (currentNavigation.screen === nextScreen) {
+        return currentNavigation;
+      }
+
+      return {
+        screen: nextScreen,
+        direction: getNavigationDirection(currentNavigation.screen, nextScreen)
+      };
+    });
+  };
 
   const refreshSnapshot = () => {
     if (!hasSupabaseConfig()) {
@@ -73,47 +109,47 @@ function App() {
   const createExpense = async (input: CreateExpenseInput) => {
     await createExpenseWithDebtors(input);
     await refreshSnapshot();
-    setActiveScreen("expense-history");
+    navigateTo("expense-history");
   };
 
   const openExpenseDetail = (expenseId: number) => {
     setSelectedExpenseId(expenseId);
-    setActiveScreen("expense-history-detail");
+    navigateTo("expense-history-detail");
   };
 
   const deleteExpense = async (expenseId: number) => {
     await deleteExpenseWithDebtors(expenseId);
     setSelectedExpenseId(null);
     await refreshSnapshot();
-    setActiveScreen("expense-history");
+    navigateTo("expense-history");
   };
 
   const activeScreenElement =
     activeScreen === "home" ? (
       <HomeScreen
         snapshot={expenseSnapshot}
-        onOpenExpenseHistory={() => setActiveScreen("expense-history")}
+        onOpenExpenseHistory={() => navigateTo("expense-history")}
         onSendExpense={markExpenseSent}
         onReceiveExpense={markExpenseReceived}
       />
     ) : activeScreen === "expense-history" ? (
       <ExpenseHistoryScreen
         snapshot={expenseSnapshot}
-        onBack={() => setActiveScreen("home")}
-        onOpenExpenseAdd={() => setActiveScreen("expense-add")}
+        onBack={() => navigateTo("home")}
+        onOpenExpenseAdd={() => navigateTo("expense-add")}
         onOpenExpenseDetail={openExpenseDetail}
       />
     ) : activeScreen === "expense-history-detail" ? (
       <ExpenseHistoryDetailScreen
         snapshot={expenseSnapshot}
         expenseId={selectedExpenseId}
-        onBack={() => setActiveScreen("expense-history")}
+        onBack={() => navigateTo("expense-history")}
         onDeleteExpense={deleteExpense}
       />
     ) : (
       <ExpenseAddScreen
         snapshot={expenseSnapshot}
-        onBack={() => setActiveScreen("expense-history")}
+        onBack={() => navigateTo("expense-history")}
         onCreateExpense={createExpense}
       />
     );
@@ -121,9 +157,34 @@ function App() {
   return (
     <main className="min-h-screen bg-[#f2f4f6] text-[#111827]">
       <div className="min-h-screen w-full overflow-hidden">
-        {isInitialSnapshotLoading ? <SplashScreen /> : activeScreenElement}
+        {isInitialSnapshotLoading ? (
+          <SplashScreen />
+        ) : (
+          <ScreenTransition screen={activeScreen} direction={navigation.direction}>
+            {activeScreenElement}
+          </ScreenTransition>
+        )}
       </div>
     </main>
+  );
+}
+
+type ScreenTransitionProps = {
+  screen: ScreenKey;
+  direction: NavigationDirection;
+  children: ReactNode;
+};
+
+function ScreenTransition({ screen, direction, children }: ScreenTransitionProps) {
+  return (
+    <div className="app-screen-frame">
+      <div
+        className={`app-screen-transition app-screen-transition-${direction}`}
+        key={screen}
+      >
+        {children}
+      </div>
+    </div>
   );
 }
 
