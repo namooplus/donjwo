@@ -72,7 +72,7 @@ export function SummaryTab({ snapshot, onOpenExpenseHistory }: SummaryTabProps) 
         )}
 
         <button
-          className="mt-10 flex h-13 w-full items-center justify-center gap-1.5 rounded-[1.25rem] bg-white text-[15px] font-bold text-[#4b5563] shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition hover:text-[#111827]"
+          className="mt-10 flex items-center gap-1 text-[15px] font-bold text-[#2f6df6] transition hover:text-[#1d4ed8]"
           type="button"
           onClick={onOpenExpenseHistory}
         >

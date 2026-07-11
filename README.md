@@ -66,7 +66,7 @@ bun run format
 - `ScreenHeader`, `BackButton`, and `FloatingPicker` provide shared screen
   chrome and overlays.
 - `src/components/screens/home/index.tsx` contains the root Home screen and the
-  Send tab target person picker.
+  Send/Receive tab target person pickers.
 - `src/components/screens/home` contains Summary, Send, and Receive tab
   content.
 - `src/components/screens` also contains pushed screen components.
@@ -111,6 +111,9 @@ failure cases.
 The Send tab target sender is selected from `Person` rows. It lists expenses
 where that person is a debtor, hides expenses with a verified `ExpenseSender`
 row for that person, and shows unverified sender rows as pending confirmation.
+The Receive tab target receiver is selected from `Person` rows. It lists
+expenses paid by that person, grouped by debtor, and hides verified
+`ExpenseSender` rows.
 
 ## Documentation Maintenance
 

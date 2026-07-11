@@ -33,7 +33,8 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
   `BackButton`.
 - Floating picker overlays use the shared `FloatingPicker` component.
 - `src/components/screens/home/index.tsx` owns the root Home screen and its
-  Summary, Send, and Receive tabs, including the Send tab target person picker.
+  Summary, Send, and Receive tabs, including Send and Receive target person
+  pickers.
 - Home screen tab content belongs in `src/components/screens/home`.
 - Pushed screen UI, such as activity-like detail screens, belongs in
   `src/components/screens`.
@@ -46,6 +47,10 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
 - The Send tab lists expenses where the selected target sender is a debtor,
   hides expenses with a verified `ExpenseSender` row for that person, and shows
   pending sender rows as disabled `송금 확인중` items.
+- The Receive tab target receiver is selected from the fixed title using people
+  from the `Person` table.
+- The Receive tab lists expenses paid by the selected receiver, grouped by
+  debtor, and hides expenses with verified `ExpenseSender` rows.
 - The Home timeline has a `자세히 보기` action that opens the `공금 사용 내역`
   expense history screen.
 - The floating bottom navigation is icon-only. Preserve `aria-label` values for

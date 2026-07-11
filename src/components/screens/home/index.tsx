@@ -17,6 +17,7 @@ type HomeScreenProps = {
 export function HomeScreen({ snapshot, onOpenExpenseHistory }: HomeScreenProps) {
   const [activeTab, setActiveTab] = useState<HomeTabKey>("summary");
   const [selectedSenderId, setSelectedSenderId] = useState<number | null>(null);
+  const [selectedReceiverId, setSelectedReceiverId] = useState<number | null>(null);
   const selectedSender = useMemo(() => {
     if (!snapshot || selectedSenderId === null) {
       return null;
@@ -24,10 +25,17 @@ export function HomeScreen({ snapshot, onOpenExpenseHistory }: HomeScreenProps) 
 
     return snapshot.people.find((person) => person.id === selectedSenderId) ?? null;
   }, [selectedSenderId, snapshot]);
+  const selectedReceiver = useMemo(() => {
+    if (!snapshot || selectedReceiverId === null) {
+      return null;
+    }
+
+    return snapshot.people.find((person) => person.id === selectedReceiverId) ?? null;
+  }, [selectedReceiverId, snapshot]);
   const titleByTab: Record<HomeTabKey, string> = {
     summary: "공금",
     send: "보내야 할 돈",
-    receive: "민서가 받아야 할 돈"
+    receive: "받아야 할 돈"
   };
 
   useEffect(() => {
@@ -45,12 +53,37 @@ export function HomeScreen({ snapshot, onOpenExpenseHistory }: HomeScreenProps) 
     setSelectedSenderId(defaultSender.id);
   }, [selectedSenderId, snapshot]);
 
+  useEffect(() => {
+    if (!snapshot || snapshot.people.length === 0) {
+      return;
+    }
+
+    if (snapshot.people.some((person) => person.id === selectedReceiverId)) {
+      return;
+    }
+
+    const defaultReceiver =
+      snapshot.people.find((person) => person.name === "민서") ?? snapshot.people[0];
+
+    setSelectedReceiverId(defaultReceiver.id);
+  }, [selectedReceiverId, snapshot]);
+
   const headerTitle =
     activeTab === "send" ? (
-      <SendHeaderTitle
+      <PersonHeaderTitle
         people={snapshot?.people ?? []}
-        selectedSenderId={selectedSenderId}
+        selectedPersonId={selectedSenderId}
+        pickerLabel="보낼 사람 선택"
+        suffix="보내야 할 돈"
         onChange={setSelectedSenderId}
+      />
+    ) : activeTab === "receive" ? (
+      <PersonHeaderTitle
+        people={snapshot?.people ?? []}
+        selectedPersonId={selectedReceiverId}
+        pickerLabel="받을 사람 선택"
+        suffix="받아야 할 돈"
+        onChange={setSelectedReceiverId}
       />
     ) : (
       titleByTab[activeTab]
@@ -66,22 +99,32 @@ export function HomeScreen({ snapshot, onOpenExpenseHistory }: HomeScreenProps) 
       {activeTab === "send" && (
         <SendTab snapshot={snapshot} targetSender={selectedSender} />
       )}
-      {activeTab === "receive" && <ReceiveTab snapshot={snapshot} />}
+      {activeTab === "receive" && (
+        <ReceiveTab snapshot={snapshot} targetReceiver={selectedReceiver} />
+      )}
 
       <FloatingTabs activeTab={activeTab} onChange={setActiveTab} />
     </>
   );
 }
 
-type SendHeaderTitleProps = {
+type PersonHeaderTitleProps = {
   people: Person[];
-  selectedSenderId: number | null;
+  selectedPersonId: number | null;
+  pickerLabel: string;
+  suffix: string;
   onChange: (personId: number) => void;
 };
 
-function SendHeaderTitle({ people, selectedSenderId, onChange }: SendHeaderTitleProps) {
+function PersonHeaderTitle({
+  people,
+  selectedPersonId,
+  pickerLabel,
+  suffix,
+  onChange
+}: PersonHeaderTitleProps) {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const selectedPerson = people.find((person) => person.id === selectedSenderId);
+  const selectedPerson = people.find((person) => person.id === selectedPersonId);
   const options = people.map((person) => ({
     value: person.id,
     label: person.name
@@ -99,7 +142,7 @@ function SendHeaderTitle({ people, selectedSenderId, onChange }: SendHeaderTitle
           <button
             className="flex min-w-0 max-w-[10rem] items-center gap-1 rounded-xl text-left text-4xl font-bold tracking-normal text-[#111827] outline-none disabled:text-[#9aa3af]"
             type="button"
-            aria-label="보낼 사람 선택"
+            aria-label={pickerLabel}
             aria-haspopup="listbox"
             aria-expanded={isPickerOpen}
             disabled={people.length === 0}
@@ -112,9 +155,9 @@ function SendHeaderTitle({ people, selectedSenderId, onChange }: SendHeaderTitle
             />
           </button>
           <FloatingPicker
-            ariaLabel="보낼 사람 선택"
+            ariaLabel={pickerLabel}
             options={options}
-            selectedValue={selectedSenderId}
+            selectedValue={selectedPersonId}
             isOpen={isPickerOpen}
             onChange={selectPerson}
             onClose={() => setIsPickerOpen(false)}
@@ -122,7 +165,7 @@ function SendHeaderTitle({ people, selectedSenderId, onChange }: SendHeaderTitle
         </span>
         <span className="shrink-0">가</span>
       </span>
-      <span className="block">보내야 할 돈</span>
+      <span className="block">{suffix}</span>
     </span>
   );
 }
