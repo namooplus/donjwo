@@ -7,7 +7,7 @@ import {
   FloatingDatePicker,
   formatISODate,
   formatKoreanDate,
-  toDateParts
+  toDateParts,
 } from "@/components/common/FloatingDatePicker";
 import { FloatingPicker } from "@/components/common/FloatingPicker";
 import { LoadingCard } from "@/components/common/LoadingCard";
@@ -46,31 +46,32 @@ type ExpenseSet = {
 const createExpenseSet = (id: number): ExpenseSet => ({
   id,
   cost: "",
-  debtorIds: new Set()
+  debtorIds: new Set(),
 });
 
 export function ExpenseAddScreen({
   snapshot,
   onBack,
-  onCreateExpense
+  onCreateExpense,
 }: ExpenseAddScreenProps) {
   const [name, setName] = useState("");
   const [exchangeRate, setExchangeRate] = useState("1500");
   const [payerId, setPayerId] = useState<number | null>(null);
   const [dateParts, setDateParts] = useState(() => toDateParts(new Date()));
   const [expenseSets, setExpenseSets] = useState<ExpenseSet[]>(() => [
-    createExpenseSet(1)
+    createExpenseSet(1),
   ]);
   const [nextExpenseSetId, setNextExpenseSetId] = useState(2);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const payerOptions =
     snapshot?.people.map((person) => ({
       value: person.id,
-      label: person.name
+      label: person.name,
     })) ?? [];
   const selectedPayerId = payerId ?? snapshot?.people[0]?.id ?? null;
   const selectedPayerName =
-    snapshot?.people.find((person) => person.id === selectedPayerId)?.name ?? "선택";
+    snapshot?.people.find((person) => person.id === selectedPayerId)?.name ??
+    "선택";
   const canSubmit =
     Boolean(snapshot) &&
     Boolean(name.trim()) &&
@@ -78,29 +79,30 @@ export function ExpenseAddScreen({
     Number(exchangeRate) > 0 &&
     expenseSets.length > 0 &&
     expenseSets.every(
-      (expenseSet) => Number(expenseSet.cost) > 0 && expenseSet.debtorIds.size > 0
+      (expenseSet) =>
+        Number(expenseSet.cost) > 0 && expenseSet.debtorIds.size > 0,
     ) &&
     !isSubmitting;
 
   const addExpenseSet = () => {
     setExpenseSets((currentSets) => [
       ...currentSets,
-      createExpenseSet(nextExpenseSetId)
+      createExpenseSet(nextExpenseSetId),
     ]);
     setNextExpenseSetId((currentId) => currentId + 1);
   };
 
   const removeExpenseSet = (expenseSetId: number) => {
     setExpenseSets((currentSets) =>
-      currentSets.filter((expenseSet) => expenseSet.id !== expenseSetId)
+      currentSets.filter((expenseSet) => expenseSet.id !== expenseSetId),
     );
   };
 
   const updateExpenseSetCost = (expenseSetId: number, cost: string) => {
     setExpenseSets((currentSets) =>
       currentSets.map((expenseSet) =>
-        expenseSet.id === expenseSetId ? { ...expenseSet, cost } : expenseSet
-      )
+        expenseSet.id === expenseSetId ? { ...expenseSet, cost } : expenseSet,
+      ),
     );
   };
 
@@ -121,9 +123,9 @@ export function ExpenseAddScreen({
 
         return {
           ...expenseSet,
-          debtorIds
+          debtorIds,
         };
-      })
+      }),
     );
   };
 
@@ -140,11 +142,12 @@ export function ExpenseAddScreen({
         date: formatISODate(dateParts) as CreateExpenseInput["date"],
         payer: selectedPayerId,
         exchange: Number(exchangeRate),
-        index: Math.max(0, ...snapshot.expenses.map((expense) => expense.index)) + 1,
+        index:
+          Math.max(0, ...snapshot.expenses.map((expense) => expense.index)) + 1,
         expenseSets: expenseSets.map((expenseSet) => ({
           cost: Number(expenseSet.cost),
-          debtorIds: [...expenseSet.debtorIds]
-        }))
+          debtorIds: [...expenseSet.debtorIds],
+        })),
       });
     } finally {
       setIsSubmitting(false);
@@ -153,7 +156,7 @@ export function ExpenseAddScreen({
 
   return (
     <div className="min-h-screen px-7 pb-32 pt-32 sm:px-9 lg:px-12">
-      <ScreenHeader title="지출 추가" />
+      <ScreenHeader title="공금 사용 추가" />
 
       {!snapshot && <LoadingCard />}
 
@@ -167,13 +170,13 @@ export function ExpenseAddScreen({
         >
           <section className="grid gap-4 rounded-[1.75rem] bg-white p-5">
             <label className="grid gap-2">
-              <span className="text-[13px] font-bold text-[#8a94a3]">지출 이름</span>
+              <span className="text-[13px] font-bold text-[#8a94a3]">이름</span>
               <input
                 className="h-13 rounded-[1rem] bg-[#f7f8fa] px-4 text-[16px] font-bold text-[#111827] outline-none placeholder:text-[#b8c0cc]"
                 name="name"
                 type="text"
                 value={name}
-                placeholder="예: 장보기"
+                placeholder="예: Uber (학교 -> 집)"
                 onChange={(event) => setName(event.target.value)}
               />
             </label>
@@ -189,8 +192,8 @@ export function ExpenseAddScreen({
 
           <section className="grid gap-4 rounded-[1.75rem] bg-white p-5">
             <PickerField
-              label="결제한 사람"
-              ariaLabel="결제한 사람 선택"
+              label="결제자"
+              ariaLabel="결제자"
               value={selectedPayerId}
               displayValue={selectedPayerName}
               options={payerOptions}
@@ -199,7 +202,9 @@ export function ExpenseAddScreen({
             />
 
             <label className="grid gap-2">
-              <span className="text-[13px] font-bold text-[#8a94a3]">환율</span>
+              <span className="text-[13px] font-bold text-[#8a94a3]">
+                환율 (원/달러)
+              </span>
               <input
                 className="h-13 min-w-0 rounded-[1rem] bg-[#f7f8fa] px-4 text-[16px] font-bold text-[#111827] outline-none placeholder:text-[#b8c0cc]"
                 name="exchange"
@@ -222,13 +227,13 @@ export function ExpenseAddScreen({
               >
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-[13px] font-bold text-[#8a94a3]">
-                    지출 항목 {index + 1}
+                    지출 내역 {index + 1}
                   </h2>
                   {expenseSets.length > 1 && (
                     <button
                       className="grid size-9 place-items-center rounded-full bg-[#f7f8fa] text-[#8a94a3] transition hover:bg-[#eef1f4] hover:text-[#111827]"
                       type="button"
-                      aria-label={`지출 항목 ${index + 1} 삭제`}
+                      aria-label={`지출 내역 ${index + 1} 삭제`}
                       onClick={() => removeExpenseSet(expenseSet.id)}
                     >
                       <Trash2 className="size-4" aria-hidden="true" />
@@ -237,7 +242,9 @@ export function ExpenseAddScreen({
                 </div>
 
                 <label className="grid gap-2">
-                  <span className="text-[13px] font-bold text-[#8a94a3]">금액</span>
+                  <span className="text-[13px] font-bold text-[#8a94a3]">
+                    금액
+                  </span>
                   <input
                     className="h-13 min-w-0 rounded-[1rem] bg-[#f7f8fa] px-4 text-[16px] font-bold text-[#111827] outline-none placeholder:text-[#b8c0cc]"
                     name={`cost-${expenseSet.id}`}
@@ -254,7 +261,9 @@ export function ExpenseAddScreen({
                 </label>
 
                 <div className="grid gap-3">
-                  <h3 className="text-[13px] font-bold text-[#8a94a3]">사용한 사람</h3>
+                  <h3 className="text-[13px] font-bold text-[#8a94a3]">
+                    사용한 사람
+                  </h3>
                   <div className="grid gap-2">
                     {snapshot.people.map((person) => {
                       const isSelected = expenseSet.debtorIds.has(person.id);
@@ -263,7 +272,7 @@ export function ExpenseAddScreen({
                         <button
                           className={[
                             "flex h-12 items-center justify-between rounded-[1rem] px-4 text-left transition",
-                            isSelected ? "bg-[#f2f6ff]" : "bg-[#f7f8fa]"
+                            isSelected ? "bg-[#f2f6ff]" : "bg-[#f7f8fa]",
                           ].join(" ")}
                           key={person.id}
                           type="button"
@@ -280,7 +289,7 @@ export function ExpenseAddScreen({
                               "grid size-6 place-items-center rounded-full border-2 transition",
                               isSelected
                                 ? "border-[#2f6df6] bg-[#2f6df6] text-white"
-                                : "border-[#d7dde6] bg-white text-transparent"
+                                : "border-[#d7dde6] bg-white text-transparent",
                             ].join(" ")}
                           >
                             <Check className="size-4" aria-hidden="true" />
@@ -318,14 +327,20 @@ export function ExpenseAddScreen({
           label: isSubmitting ? "추가 중" : "지출 추가",
           icon: Plus,
           disabled: !canSubmit,
-          onClick: submitExpense
+          onClick: submitExpense,
         }}
       />
     </div>
   );
 }
 
-function DateField({ label, ariaLabel, value, inputName, onChange }: DateFieldProps) {
+function DateField({
+  label,
+  ariaLabel,
+  value,
+  inputName,
+  onChange,
+}: DateFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -342,7 +357,10 @@ function DateField({ label, ariaLabel, value, inputName, onChange }: DateFieldPr
           onClick={() => setIsOpen(true)}
         >
           <span className="truncate">{formatKoreanDate(value)}</span>
-          <ChevronDown className="size-5 shrink-0 text-[#8a94a3]" aria-hidden="true" />
+          <ChevronDown
+            className="size-5 shrink-0 text-[#8a94a3]"
+            aria-hidden="true"
+          />
         </button>
         <FloatingDatePicker
           ariaLabel={ariaLabel}
@@ -363,7 +381,7 @@ function PickerField({
   displayValue,
   options,
   inputName,
-  onChange
+  onChange,
 }: PickerFieldProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -386,7 +404,10 @@ function PickerField({
           onClick={() => setIsOpen(true)}
         >
           <span className="truncate">{displayValue}</span>
-          <ChevronDown className="size-5 shrink-0 text-[#8a94a3]" aria-hidden="true" />
+          <ChevronDown
+            className="size-5 shrink-0 text-[#8a94a3]"
+            aria-hidden="true"
+          />
         </button>
         <FloatingPicker
           ariaLabel={ariaLabel}

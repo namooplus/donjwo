@@ -52,12 +52,6 @@ export function HomeScreen({
 
     return snapshot.people.find((person) => person.id === selectedReceiverId) ?? null;
   }, [selectedReceiverId, snapshot]);
-  const titleByTab: Record<HomeTabKey, string> = {
-    summary: "돈줘",
-    send: "보내야 할 돈",
-    receive: "받아야 할 돈"
-  };
-
   useEffect(() => {
     if (!snapshot || snapshot.people.length === 0) {
       return;
@@ -106,7 +100,7 @@ export function HomeScreen({
         onChange={setSelectedReceiverId}
       />
     ) : (
-      titleByTab[activeTab]
+      "돈줘"
     );
 
   return (
@@ -202,11 +196,11 @@ function PersonHeaderTitle({
   };
 
   return (
-    <span className="block leading-[1.14]">
+    <span className="block leading-tight">
       <span className="flex min-w-0 items-center gap-1">
         <span className="relative min-w-0">
           <button
-            className="flex min-w-0 max-w-[10rem] items-center gap-1 rounded-xl text-left text-4xl font-bold tracking-normal text-[#111827] outline-none disabled:text-[#9aa3af]"
+            className="flex min-w-0 max-w-[8.5rem] items-center gap-1 rounded-xl text-left text-[28px] font-bold tracking-normal text-[#111827] outline-none disabled:text-[#9aa3af]"
             type="button"
             aria-label={pickerLabel}
             aria-haspopup="listbox"
@@ -216,7 +210,7 @@ function PersonHeaderTitle({
           >
             <span className="truncate">{selectedPerson?.name ?? "선택"}</span>
             <ChevronDown
-              className="size-6 shrink-0 text-[#111827]"
+              className="size-5 shrink-0 text-[#111827]"
               aria-hidden="true"
             />
           </button>

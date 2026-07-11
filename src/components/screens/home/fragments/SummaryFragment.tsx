@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { useMemo } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
+import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingCard } from "@/components/common/LoadingCard";
 import {
   formatWon,
@@ -50,6 +51,10 @@ export function SummaryFragment({
         <div className="absolute bottom-1 left-[0.8125rem] top-1 w-0.5 rounded-full bg-[#d9dee6]" />
 
         {!snapshot && <LoadingCard />}
+
+        {snapshot && summary.weeks.length === 0 && (
+          <EmptyState message="아직 등록된 지출이 없어요" />
+        )}
 
         {summary.weeks.length > 0 && (
           <div className="grid gap-7">

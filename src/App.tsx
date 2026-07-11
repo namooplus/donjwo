@@ -12,12 +12,16 @@ import { ExpenseAddScreen } from "@/components/screens/expense-add";
 import { ExpenseHistoryScreen } from "@/components/screens/expense-history";
 import { ExpenseHistoryDetailScreen } from "@/components/screens/expense-history-detail";
 import { HomeScreen } from "@/components/screens/home";
+import { SplashScreen } from "@/components/screens/splash";
 
-type ScreenKey = "root" | "expense-history" | "expense-history-detail" | "expense-add";
+type ScreenKey = "home" | "expense-history" | "expense-history-detail" | "expense-add";
 
 function App() {
-  const [activeScreen, setActiveScreen] = useState<ScreenKey>("root");
+  const [activeScreen, setActiveScreen] = useState<ScreenKey>("home");
   const [expenseSnapshot, setExpenseSnapshot] = useState<BackendSnapshot | null>(null);
+  const [isInitialSnapshotLoading, setIsInitialSnapshotLoading] = useState(
+    hasSupabaseConfig()
+  );
   const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(null);
 
   const refreshSnapshot = () => {
@@ -34,6 +38,7 @@ function App() {
     let isCurrent = true;
 
     if (!hasSupabaseConfig()) {
+      setIsInitialSnapshotLoading(false);
       return;
     }
 
@@ -43,7 +48,12 @@ function App() {
           setExpenseSnapshot(snapshot);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (isCurrent) {
+          setIsInitialSnapshotLoading(false);
+        }
+      });
 
     return () => {
       isCurrent = false;
@@ -78,40 +88,40 @@ function App() {
     setActiveScreen("expense-history");
   };
 
+  const activeScreenElement =
+    activeScreen === "home" ? (
+      <HomeScreen
+        snapshot={expenseSnapshot}
+        onOpenExpenseHistory={() => setActiveScreen("expense-history")}
+        onSendExpense={markExpenseSent}
+        onReceiveExpense={markExpenseReceived}
+      />
+    ) : activeScreen === "expense-history" ? (
+      <ExpenseHistoryScreen
+        snapshot={expenseSnapshot}
+        onBack={() => setActiveScreen("home")}
+        onOpenExpenseAdd={() => setActiveScreen("expense-add")}
+        onOpenExpenseDetail={openExpenseDetail}
+      />
+    ) : activeScreen === "expense-history-detail" ? (
+      <ExpenseHistoryDetailScreen
+        snapshot={expenseSnapshot}
+        expenseId={selectedExpenseId}
+        onBack={() => setActiveScreen("expense-history")}
+        onDeleteExpense={deleteExpense}
+      />
+    ) : (
+      <ExpenseAddScreen
+        snapshot={expenseSnapshot}
+        onBack={() => setActiveScreen("expense-history")}
+        onCreateExpense={createExpense}
+      />
+    );
+
   return (
     <main className="min-h-screen bg-[#f2f4f6] text-[#111827]">
       <div className="min-h-screen w-full overflow-hidden">
-        {activeScreen === "root" && (
-          <HomeScreen
-            snapshot={expenseSnapshot}
-            onOpenExpenseHistory={() => setActiveScreen("expense-history")}
-            onSendExpense={markExpenseSent}
-            onReceiveExpense={markExpenseReceived}
-          />
-        )}
-        {activeScreen === "expense-history" && (
-          <ExpenseHistoryScreen
-            snapshot={expenseSnapshot}
-            onBack={() => setActiveScreen("root")}
-            onOpenExpenseAdd={() => setActiveScreen("expense-add")}
-            onOpenExpenseDetail={openExpenseDetail}
-          />
-        )}
-        {activeScreen === "expense-history-detail" && (
-          <ExpenseHistoryDetailScreen
-            snapshot={expenseSnapshot}
-            expenseId={selectedExpenseId}
-            onBack={() => setActiveScreen("expense-history")}
-            onDeleteExpense={deleteExpense}
-          />
-        )}
-        {activeScreen === "expense-add" && (
-          <ExpenseAddScreen
-            snapshot={expenseSnapshot}
-            onBack={() => setActiveScreen("expense-history")}
-            onCreateExpense={createExpense}
-          />
-        )}
+        {isInitialSnapshotLoading ? <SplashScreen /> : activeScreenElement}
       </div>
     </main>
   );

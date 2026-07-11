@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import type { ExpenseDebtor, SettlementStatus } from "@/backend/schema";
 import { BackButton } from "@/components/common/BackButton";
+import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingCard } from "@/components/common/LoadingCard";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
 import {
@@ -83,15 +84,11 @@ export function ExpenseHistoryDetailScreen({
 
   return (
     <div className="min-h-screen px-7 pb-32 pt-32 sm:px-9 lg:px-12">
-      <ScreenHeader title="지출 상세" />
+      <ScreenHeader title="공금 사용 상세" />
 
       {!snapshot && <LoadingCard />}
 
-      {snapshot && !detail && (
-        <p className="rounded-[1.25rem] bg-white p-5 text-[15px] font-semibold text-[#8a94a3]">
-          지출 내역을 찾을 수 없어요.
-        </p>
-      )}
+      {snapshot && !detail && <EmptyState message="지출 내역을 찾을 수 없어요" />}
 
       {detail && (
         <div className="grid gap-5">
@@ -104,20 +101,23 @@ export function ExpenseHistoryDetailScreen({
                 {detail.expense.name}
               </h1>
               <p className="mt-2 text-[14px] font-semibold text-[#8a94a3]">
-                {formatKoreanDate(detail.expense.date)} · {detail.payerName} 결제
+                {formatKoreanDate(detail.expense.date)}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <DetailMetric
-                label="달러"
+                label="가격 (달러)"
                 value={`$${formatDollar(detail.expense.cost)}`}
               />
               <DetailMetric
-                label="원화"
+                label="가격 (원화)"
                 value={`${formatWon(getExpenseAmountInWon(detail.expense))}원`}
               />
-              <DetailMetric label="환율" value={String(detail.expense.exchange)} />
-              <DetailMetric label="사용 인원" value={`${detail.debtors.length}명`} />
+              <DetailMetric
+                label="환율 (원/달러)"
+                value={String(detail.expense.exchange)}
+              />
+              <DetailMetric label="결제자" value={detail.payerName} />
             </div>
           </section>
 

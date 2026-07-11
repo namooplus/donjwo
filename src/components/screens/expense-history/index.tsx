@@ -2,6 +2,7 @@ import { Plus, ReceiptText } from "lucide-react";
 import { useMemo } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import { BackButton } from "@/components/common/BackButton";
+import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingCard } from "@/components/common/LoadingCard";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
 import {
@@ -42,9 +43,7 @@ export function ExpenseHistoryScreen({
         {!snapshot && <LoadingCard />}
 
         {snapshot && expenses.length === 0 && (
-          <p className="rounded-[1.25rem] bg-[#f7f8fa] p-5 text-[15px] font-semibold text-[#8a94a3]">
-            아직 등록된 지출이 없어요.
-          </p>
+          <EmptyState message="아직 등록된 지출이 없어요" />
         )}
 
         {expenseGroups.length > 0 && (

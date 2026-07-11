@@ -2,6 +2,7 @@ import { ReceiptText } from "lucide-react";
 import { useMemo } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import type { ISODate, Person } from "@/backend/schema";
+import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingCard } from "@/components/common/LoadingCard";
 import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummary";
 
@@ -38,9 +39,7 @@ export function ReceiveFragment({
       {!snapshot && <LoadingCard />}
 
       {snapshot && expenseGroups.length === 0 && (
-        <p className="rounded-[1.25rem] bg-white p-5 text-[15px] font-semibold text-[#8a94a3]">
-          받을 돈이 없어요.
-        </p>
+        <EmptyState message="모든 돈을 받았어요" />
       )}
 
       {expenseGroups.map((group) => (
