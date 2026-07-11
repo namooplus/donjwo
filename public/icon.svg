@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">Yugain Settlement</title>
+  <title id="title">돈줘</title>
   <desc id="desc">A teal settlement ledger mark with a white check path.</desc>
   <rect width="512" height="512" rx="112" fill="#155e75"/>
   <path fill="#ecfeff" d="M144 164c0-22 18-40 40-40h144c22 0 40 18 40 40v184c0 22-18 40-40 40H184c-22 0-40-18-40-40V164Zm64 32a16 16 0 0 0 0 32h96a16 16 0 0 0 0-32h-96Zm0 72a16 16 0 0 0 0 32h38a16 16 0 0 0 0-32h-38Zm115 6-69 69-29-29a16 16 0 1 0-23 23l40 40a16 16 0 0 0 23 0l80-80a16 16 0 0 0-22-23Z"/>

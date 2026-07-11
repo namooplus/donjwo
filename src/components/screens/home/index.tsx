@@ -1,13 +1,26 @@
-import { ChevronDown } from "lucide-react";
+import { ArrowDownLeft, ChevronDown, Home, Send } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import type { Person } from "@/backend/schema";
 import { FloatingPicker } from "@/components/common/FloatingPicker";
-import { FloatingTabs, type HomeTabKey } from "@/components/common/FloatingTabs";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
-import { ReceiveTab } from "@/components/screens/home/ReceiveTab";
-import { SendTab } from "@/components/screens/home/SendTab";
-import { SummaryTab } from "@/components/screens/home/SummaryTab";
+import { ReceiveFragment } from "@/components/screens/home/fragments/ReceiveFragment";
+import { SendFragment } from "@/components/screens/home/fragments/SendFragment";
+import { SummaryFragment } from "@/components/screens/home/fragments/SummaryFragment";
+
+type HomeTabKey = "summary" | "send" | "receive";
+
+type Tab = {
+  key: HomeTabKey;
+  label: string;
+  icon: typeof Home;
+};
+
+const tabs: Tab[] = [
+  { key: "summary", label: "Summary", icon: Home },
+  { key: "send", label: "Send", icon: Send },
+  { key: "receive", label: "Receive", icon: ArrowDownLeft }
+];
 
 type HomeScreenProps = {
   snapshot: BackendSnapshot | null;
@@ -40,7 +53,7 @@ export function HomeScreen({
     return snapshot.people.find((person) => person.id === selectedReceiverId) ?? null;
   }, [selectedReceiverId, snapshot]);
   const titleByTab: Record<HomeTabKey, string> = {
-    summary: "공금",
+    summary: "돈줘",
     send: "보내야 할 돈",
     receive: "받아야 할 돈"
   };
@@ -101,17 +114,20 @@ export function HomeScreen({
       <ScreenHeader title={headerTitle} />
 
       {activeTab === "summary" && (
-        <SummaryTab snapshot={snapshot} onOpenExpenseHistory={onOpenExpenseHistory} />
+        <SummaryFragment
+          snapshot={snapshot}
+          onOpenExpenseHistory={onOpenExpenseHistory}
+        />
       )}
       {activeTab === "send" && (
-        <SendTab
+        <SendFragment
           snapshot={snapshot}
           targetSender={selectedSender}
           onSendExpense={onSendExpense}
         />
       )}
       {activeTab === "receive" && (
-        <ReceiveTab
+        <ReceiveFragment
           snapshot={snapshot}
           targetReceiver={selectedReceiver}
           onReceiveExpense={onReceiveExpense}
@@ -120,6 +136,41 @@ export function HomeScreen({
 
       <FloatingTabs activeTab={activeTab} onChange={setActiveTab} />
     </>
+  );
+}
+
+type FloatingTabsProps = {
+  activeTab: HomeTabKey;
+  onChange: (tab: HomeTabKey) => void;
+};
+
+function FloatingTabs({ activeTab, onChange }: FloatingTabsProps) {
+  return (
+    <nav
+      className="fixed bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/80 bg-white/88 p-1.5 shadow-[0_18px_48px_rgba(15,23,42,0.18)] backdrop-blur-xl"
+      aria-label="Primary"
+    >
+      {tabs.map((tab) => {
+        const Icon = tab.icon;
+        const isActive = activeTab === tab.key;
+
+        return (
+          <button
+            className={[
+              "flex h-12 min-w-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition",
+              isActive ? "floating-tab-active" : "floating-tab-inactive"
+            ].join(" ")}
+            key={tab.key}
+            type="button"
+            aria-label={tab.label}
+            aria-current={isActive ? "page" : undefined}
+            onClick={() => onChange(tab.key)}
+          >
+            <Icon className="size-5" aria-hidden="true" />
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 

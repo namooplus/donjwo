@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "yugain-settlement",
+      "name": "donjwo",
       "dependencies": {
         "@supabase/supabase-js": "^2.110.2",
         "@tailwindcss/vite": "^4.3.2",

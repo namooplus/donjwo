@@ -5,7 +5,7 @@ import type { ISODate, Person } from "@/backend/schema";
 import { LoadingCard } from "@/components/common/LoadingCard";
 import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummary";
 
-type ReceiveTabProps = {
+type ReceiveFragmentProps = {
   snapshot: BackendSnapshot | null;
   targetReceiver: Person | null;
   onReceiveExpense: (expenseId: number, debtorId: number) => void;
@@ -20,11 +20,11 @@ type ReceiveExpense = {
   confirmed: boolean;
 };
 
-export function ReceiveTab({
+export function ReceiveFragment({
   snapshot,
   targetReceiver,
   onReceiveExpense
-}: ReceiveTabProps) {
+}: ReceiveFragmentProps) {
   const expenseGroups = useMemo(() => {
     if (!snapshot || !targetReceiver) {
       return [];

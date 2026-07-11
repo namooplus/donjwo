@@ -5,7 +5,7 @@ import type { ISODate, Person } from "@/backend/schema";
 import { LoadingCard } from "@/components/common/LoadingCard";
 import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummary";
 
-type SendTabProps = {
+type SendFragmentProps = {
   snapshot: BackendSnapshot | null;
   targetSender: Person | null;
   onSendExpense: (expenseId: number, debtorId: number) => void;
@@ -20,7 +20,11 @@ type SendExpense = {
   confirmed: boolean;
 };
 
-export function SendTab({ snapshot, targetSender, onSendExpense }: SendTabProps) {
+export function SendFragment({
+  snapshot,
+  targetSender,
+  onSendExpense
+}: SendFragmentProps) {
   const targetSenderId = targetSender?.id ?? null;
   const expenseGroups = useMemo(() => {
     if (!snapshot || !targetSender) {

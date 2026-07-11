@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This project is a Bun-managed React, TypeScript, Vite PWA. The current product
-direction is a mobile-first settlement app with a fixed `공금` header, icon-only
+direction is a mobile-first settlement app with a fixed `돈줘` header, icon-only
 floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
 `README.md` current as the project evolves.
 
@@ -36,12 +36,12 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
 - `src/components/screens/home/index.tsx` owns the root Home screen and its
   Summary, Send, and Receive tabs, including Send and Receive target person
   pickers.
-- Home screen tab content belongs in `src/components/screens/home`.
+- Home screen tab content belongs in `src/components/screens/home/fragments`.
 - Pushed screen UI, such as activity-like detail screens, belongs in
   `src/components/screens`.
 - `src/components/screens/expense-add` owns the pushed expense creation form.
-- App-level screen state types live in `src/App.tsx`; tab button metadata lives
-  with `FloatingTabs`.
+- App-level screen state types live in `src/App.tsx`; Home tab button metadata
+  lives in `src/components/screens/home/index.tsx`.
 - Home spending summary helpers live in `src/features/home`.
 - The Home screen has three tabs: Summary, Send, and Receive.
 - The Send tab target sender is selected from the fixed title using people from
@@ -59,7 +59,7 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
   `지출 추가` screen.
 - The floating bottom navigation is icon-only. Preserve `aria-label` values for
   accessibility when changing tab buttons.
-- The fixed header shows `공금`. Its fade is applied to the H1 text itself.
+- The fixed header shows `돈줘`. Its fade is applied to the H1 text itself.
 - The Home screen shows the total spending summary above the timeline and lists
   weekly items from latest to oldest.
 

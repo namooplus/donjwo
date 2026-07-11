@@ -1,7 +1,7 @@
-# Yugain Settlement
+# 돈줘
 
-Yugain Settlement is a PWA application scaffolded with React, TypeScript, Vite,
-Bun, Biome, and Knip.
+돈줘 is a PWA application scaffolded with React, TypeScript, Vite, Bun, Biome,
+and Knip.
 
 The app is a mobile-first settlement experience backed by Supabase. It currently
 focuses on public fund spending, transfer, and receive flows.
@@ -66,9 +66,9 @@ bun run format
 - `ScreenHeader`, `BackButton`, `FloatingPicker`, and `FloatingDatePicker`
   provide shared screen chrome and overlays.
 - `src/components/screens/home/index.tsx` contains the root Home screen and the
-  Send/Receive tab target person pickers.
-- `src/components/screens/home` contains Summary, Send, and Receive tab
-  content.
+  floating tabs plus Send/Receive tab target person pickers.
+- `src/components/screens/home/fragments` contains Summary, Send, and Receive
+  tab content fragments.
 - `src/components/screens` also contains pushed screen components.
 - `src/components/screens/expense-add` contains the pushed expense creation
   form.

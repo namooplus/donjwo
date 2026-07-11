@@ -1,18 +1,18 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { SupabaseDatabase } from "@/backend/schema";
 
-type YugainSupabaseClient = SupabaseClient<SupabaseDatabase>;
+type AppSupabaseClient = SupabaseClient<SupabaseDatabase>;
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-let supabaseClient: YugainSupabaseClient | null = null;
+let supabaseClient: AppSupabaseClient | null = null;
 
 export function hasSupabaseConfig() {
   return Boolean(supabaseUrl && supabasePublishableKey);
 }
 
-export function getSupabaseClient(): YugainSupabaseClient {
+export function getSupabaseClient(): AppSupabaseClient {
   if (!supabaseUrl || !supabasePublishableKey) {
     throw new Error(
       "Missing Supabase configuration. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY."

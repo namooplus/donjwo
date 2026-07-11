@@ -8,12 +8,15 @@ import {
   getWeeklyExpenseSummary
 } from "@/features/home/spendingSummary";
 
-type SummaryTabProps = {
+type SummaryFragmentProps = {
   snapshot: BackendSnapshot | null;
   onOpenExpenseHistory: () => void;
 };
 
-export function SummaryTab({ snapshot, onOpenExpenseHistory }: SummaryTabProps) {
+export function SummaryFragment({
+  snapshot,
+  onOpenExpenseHistory
+}: SummaryFragmentProps) {
   const summary = useMemo(() => {
     if (!snapshot) {
       return {

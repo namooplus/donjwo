@@ -17,9 +17,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["icon.svg"],
       manifest: {
-        name: "Yugain Settlement",
-        short_name: "Yugain",
-        description: "Track settlement batches, payout status, and operational health.",
+        name: "돈줘",
+        short_name: "돈줘",
+        description: "Track shared expenses and settlement status.",
         theme_color: "#155e75",
         background_color: "#f8fafc",
         display: "standalone",
