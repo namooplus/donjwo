@@ -112,16 +112,16 @@ export function ExpenseHistoryDetailScreen({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <DetailMetric
-                label="가격 (달러)"
+                label="금액 (달러)"
                 value={`$${formatDollar(detail.expense.cost)}`}
               />
               <DetailMetric
-                label="가격 (원화)"
+                label="금액 (원화)"
                 value={`${formatWon(getExpenseAmountInWon(detail.expense))}원`}
               />
               <DetailMetric
                 label="환율 (원/달러)"
-                value={String(detail.expense.exchange)}
+                value={detail.expense.exchange.toFixed(2)}
               />
               <DetailMetric label="결제자" value={detail.payerName} />
             </div>

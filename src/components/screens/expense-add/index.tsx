@@ -57,7 +57,7 @@ export function ExpenseAddScreen({
   onCreateExpense
 }: ExpenseAddScreenProps) {
   const [title, setTitle] = useState("");
-  const [exchangeRate, setExchangeRate] = useState("1500");
+  const [exchangeRate, setExchangeRate] = useState("1500.00");
   const [payerId, setPayerId] = useState<number | null>(null);
   const [dateParts, setDateParts] = useState(() => toDateParts(new Date()));
   const [expenseSets, setExpenseSets] = useState<ExpenseSet[]>(() => [
@@ -221,7 +221,7 @@ export function ExpenseAddScreen({
                 min="0"
                 step="0.01"
                 value={exchangeRate}
-                placeholder="1500"
+                placeholder="1500.00"
                 onChange={(event) => setExchangeRate(event.target.value)}
               />
             </label>
@@ -250,7 +250,22 @@ export function ExpenseAddScreen({
                 </div>
 
                 <label className="grid gap-2">
-                  <span className="text-[13px] font-bold text-[#8a94a3]">금액</span>
+                  <span className="text-[13px] font-bold text-[#8a94a3]">설명</span>
+                  <textarea
+                    className="min-h-20 resize-none rounded-[1rem] bg-[#f7f8fa] px-4 py-3 text-[15px] font-semibold leading-relaxed text-[#111827] outline-none placeholder:text-[#b8c0cc]"
+                    name={`description-${expenseSet.id}`}
+                    value={expenseSet.description}
+                    placeholder="예: 학교 -> 집"
+                    onChange={(event) =>
+                      updateExpenseSetDescription(expenseSet.id, event.target.value)
+                    }
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-[13px] font-bold text-[#8a94a3]">
+                    금액 (달러)
+                  </span>
                   <input
                     className="h-13 min-w-0 rounded-[1rem] bg-[#f7f8fa] px-4 text-[16px] font-bold text-[#111827] outline-none placeholder:text-[#b8c0cc]"
                     name={`cost-${expenseSet.id}`}
@@ -262,19 +277,6 @@ export function ExpenseAddScreen({
                     placeholder="0"
                     onChange={(event) =>
                       updateExpenseSetCost(expenseSet.id, event.target.value)
-                    }
-                  />
-                </label>
-
-                <label className="grid gap-2">
-                  <span className="text-[13px] font-bold text-[#8a94a3]">설명</span>
-                  <textarea
-                    className="min-h-20 resize-none rounded-[1rem] bg-[#f7f8fa] px-4 py-3 text-[15px] font-semibold leading-relaxed text-[#111827] outline-none placeholder:text-[#b8c0cc]"
-                    name={`description-${expenseSet.id}`}
-                    value={expenseSet.description}
-                    placeholder="예: 학교 -> 집"
-                    onChange={(event) =>
-                      updateExpenseSetDescription(expenseSet.id, event.target.value)
                     }
                   />
                 </label>
