@@ -31,13 +31,15 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
 - Shared UI belongs in `src/components/common`.
 - Fixed screen titles use `ScreenHeader`; floating screen back actions use
   `BackButton`.
-- Floating picker overlays use the shared `FloatingPicker` component.
+- Floating picker overlays use shared components such as `FloatingPicker` and
+  `FloatingDatePicker`.
 - `src/components/screens/home/index.tsx` owns the root Home screen and its
   Summary, Send, and Receive tabs, including Send and Receive target person
   pickers.
 - Home screen tab content belongs in `src/components/screens/home`.
 - Pushed screen UI, such as activity-like detail screens, belongs in
   `src/components/screens`.
+- `src/components/screens/expense-add` owns the pushed expense creation form.
 - App-level screen state types live in `src/App.tsx`; tab button metadata lives
   with `FloatingTabs`.
 - Home spending summary helpers live in `src/features/home`.
@@ -53,6 +55,8 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
   debtor, and hides expenses with verified `ExpenseSender` rows.
 - The Home timeline has a `자세히 보기` action that opens the `공금 사용 내역`
   expense history screen.
+- The expense history screen has a floating Add action that opens the
+  `지출 추가` screen.
 - The floating bottom navigation is icon-only. Preserve `aria-label` values for
   accessibility when changing tab buttons.
 - The fixed header shows `공금`. Its fade is applied to the H1 text itself.

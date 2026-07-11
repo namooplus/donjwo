@@ -63,13 +63,15 @@ bun run format
 - `src/backend/queries.ts` contains typed Supabase table reads.
 - `src/App.tsx` contains the current application shell composition.
 - `src/components/common` contains shared UI components.
-- `ScreenHeader`, `BackButton`, and `FloatingPicker` provide shared screen
-  chrome and overlays.
+- `ScreenHeader`, `BackButton`, `FloatingPicker`, and `FloatingDatePicker`
+  provide shared screen chrome and overlays.
 - `src/components/screens/home/index.tsx` contains the root Home screen and the
   Send/Receive tab target person pickers.
 - `src/components/screens/home` contains Summary, Send, and Receive tab
   content.
 - `src/components/screens` also contains pushed screen components.
+- `src/components/screens/expense-add` contains the pushed expense creation
+  form.
 - `src/features/home` contains Home spending summary helpers.
 - `src/main.tsx` mounts React and registers the service worker.
 - `src/styles.css` contains the app styles.

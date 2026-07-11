@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import { getBackendSnapshot } from "@/backend/queries";
 import { hasSupabaseConfig } from "@/backend/supabase";
+import { ExpenseAddScreen } from "@/components/screens/expense-add";
 import { ExpenseHistoryScreen } from "@/components/screens/expense-history";
 import { HomeScreen } from "@/components/screens/home";
 
-type ScreenKey = "root" | "expense-history";
+type ScreenKey = "root" | "expense-history" | "expense-add";
 
 function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenKey>("root");
@@ -44,6 +45,13 @@ function App() {
           <ExpenseHistoryScreen
             snapshot={expenseSnapshot}
             onBack={() => setActiveScreen("root")}
+            onOpenExpenseAdd={() => setActiveScreen("expense-add")}
+          />
+        )}
+        {activeScreen === "expense-add" && (
+          <ExpenseAddScreen
+            snapshot={expenseSnapshot}
+            onBack={() => setActiveScreen("expense-history")}
           />
         )}
       </div>

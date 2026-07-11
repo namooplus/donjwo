@@ -1,4 +1,4 @@
-import { ReceiptText } from "lucide-react";
+import { Plus, ReceiptText } from "lucide-react";
 import { useMemo } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import { BackButton } from "@/components/common/BackButton";
@@ -13,11 +13,16 @@ import {
 type ExpenseHistoryScreenProps = {
   snapshot: BackendSnapshot | null;
   onBack: () => void;
+  onOpenExpenseAdd: () => void;
 };
 
 type ExpenseListItem = ReturnType<typeof getExpenseListItems>[number];
 
-export function ExpenseHistoryScreen({ snapshot, onBack }: ExpenseHistoryScreenProps) {
+export function ExpenseHistoryScreen({
+  snapshot,
+  onBack,
+  onOpenExpenseAdd
+}: ExpenseHistoryScreenProps) {
   const expenses = useMemo(() => {
     if (!snapshot) {
       return [];
@@ -80,7 +85,14 @@ export function ExpenseHistoryScreen({ snapshot, onBack }: ExpenseHistoryScreenP
         )}
       </section>
 
-      <BackButton onClick={onBack} />
+      <BackButton
+        onClick={onBack}
+        action={{
+          label: "지출 추가",
+          icon: Plus,
+          onClick: onOpenExpenseAdd
+        }}
+      />
     </div>
   );
 }
