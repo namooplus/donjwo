@@ -1,4 +1,4 @@
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { BackendSnapshot, CreateExpenseInput } from "@/backend/queries";
 import { BackButton } from "@/components/common/BackButton";
@@ -37,17 +37,31 @@ type DateFieldProps = {
   onChange: (value: DateParts) => void;
 };
 
+type ExpenseSet = {
+  id: number;
+  cost: string;
+  debtorIds: Set<number>;
+};
+
+const createExpenseSet = (id: number): ExpenseSet => ({
+  id,
+  cost: "",
+  debtorIds: new Set()
+});
+
 export function ExpenseAddScreen({
   snapshot,
   onBack,
   onCreateExpense
 }: ExpenseAddScreenProps) {
   const [name, setName] = useState("");
-  const [cost, setCost] = useState("");
   const [exchangeRate, setExchangeRate] = useState("1500");
   const [payerId, setPayerId] = useState<number | null>(null);
   const [dateParts, setDateParts] = useState(() => toDateParts(new Date()));
-  const [debtorIds, setDebtorIds] = useState<Set<number>>(new Set());
+  const [expenseSets, setExpenseSets] = useState<ExpenseSet[]>(() => [
+    createExpenseSet(1)
+  ]);
+  const [nextExpenseSetId, setNextExpenseSetId] = useState(2);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const payerOptions =
     snapshot?.people.map((person) => ({
@@ -61,23 +75,80 @@ export function ExpenseAddScreen({
     Boolean(snapshot) &&
     Boolean(name.trim()) &&
     Boolean(selectedPayerId) &&
-    Number(cost) > 0 &&
     Number(exchangeRate) > 0 &&
-    debtorIds.size > 0 &&
+    expenseSets.length > 0 &&
+    expenseSets.every(
+      (expenseSet) => Number(expenseSet.cost) > 0 && expenseSet.debtorIds.size > 0
+    ) &&
     !isSubmitting;
 
-  const toggleDebtor = (personId: number) => {
-    setDebtorIds((currentIds) => {
-      const nextIds = new Set(currentIds);
+  const addExpenseSet = () => {
+    setExpenseSets((currentSets) => [
+      ...currentSets,
+      createExpenseSet(nextExpenseSetId)
+    ]);
+    setNextExpenseSetId((currentId) => currentId + 1);
+  };
 
-      if (nextIds.has(personId)) {
-        nextIds.delete(personId);
-      } else {
-        nextIds.add(personId);
-      }
+  const removeExpenseSet = (expenseSetId: number) => {
+    setExpenseSets((currentSets) =>
+      currentSets.filter((expenseSet) => expenseSet.id !== expenseSetId)
+    );
+  };
 
-      return nextIds;
-    });
+  const updateExpenseSetCost = (expenseSetId: number, cost: string) => {
+    setExpenseSets((currentSets) =>
+      currentSets.map((expenseSet) =>
+        expenseSet.id === expenseSetId ? { ...expenseSet, cost } : expenseSet
+      )
+    );
+  };
+
+  const toggleExpenseSetDebtor = (expenseSetId: number, personId: number) => {
+    setExpenseSets((currentSets) =>
+      currentSets.map((expenseSet) => {
+        if (expenseSet.id !== expenseSetId) {
+          return expenseSet;
+        }
+
+        const debtorIds = new Set(expenseSet.debtorIds);
+
+        if (debtorIds.has(personId)) {
+          debtorIds.delete(personId);
+        } else {
+          debtorIds.add(personId);
+        }
+
+        return {
+          ...expenseSet,
+          debtorIds
+        };
+      })
+    );
+  };
+
+  const submitExpense = async () => {
+    if (!snapshot || !selectedPayerId || !canSubmit) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await onCreateExpense({
+        name: name.trim(),
+        date: formatISODate(dateParts) as CreateExpenseInput["date"],
+        payer: selectedPayerId,
+        exchange: Number(exchangeRate),
+        index: Math.max(0, ...snapshot.expenses.map((expense) => expense.index)) + 1,
+        expenseSets: expenseSets.map((expenseSet) => ({
+          cost: Number(expenseSet.cost),
+          debtorIds: [...expenseSet.debtorIds]
+        }))
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -91,27 +162,7 @@ export function ExpenseAddScreen({
           className="grid gap-5"
           onSubmit={async (event) => {
             event.preventDefault();
-
-            if (!snapshot || !selectedPayerId || !canSubmit) {
-              return;
-            }
-
-            setIsSubmitting(true);
-
-            try {
-              await onCreateExpense({
-                name: name.trim(),
-                date: formatISODate(dateParts) as CreateExpenseInput["date"],
-                payer: selectedPayerId,
-                cost: Number(cost),
-                exchange: Number(exchangeRate),
-                debtorIds: [...debtorIds],
-                index:
-                  Math.max(0, ...snapshot.expenses.map((expense) => expense.index)) + 1
-              });
-            } finally {
-              setIsSubmitting(false);
-            }
+            await submitExpense();
           }}
         >
           <section className="grid gap-4 rounded-[1.75rem] bg-white p-5">
@@ -147,89 +198,129 @@ export function ExpenseAddScreen({
               onChange={setPayerId}
             />
 
-            <div className="grid grid-cols-[1fr_1.1fr] gap-3">
-              <label className="grid gap-2">
-                <span className="text-[13px] font-bold text-[#8a94a3]">환율</span>
-                <input
-                  className="h-13 min-w-0 rounded-[1rem] bg-[#f7f8fa] px-4 text-[16px] font-bold text-[#111827] outline-none placeholder:text-[#b8c0cc]"
-                  name="exchange"
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="0.01"
-                  value={exchangeRate}
-                  placeholder="1500"
-                  onChange={(event) => setExchangeRate(event.target.value)}
-                />
-              </label>
-
-              <label className="grid gap-2">
-                <span className="text-[13px] font-bold text-[#8a94a3]">금액</span>
-                <input
-                  className="h-13 min-w-0 rounded-[1rem] bg-[#f7f8fa] px-4 text-[16px] font-bold text-[#111827] outline-none placeholder:text-[#b8c0cc]"
-                  name="cost"
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="0.01"
-                  value={cost}
-                  placeholder="0"
-                  onChange={(event) => setCost(event.target.value)}
-                />
-              </label>
-            </div>
+            <label className="grid gap-2">
+              <span className="text-[13px] font-bold text-[#8a94a3]">환율</span>
+              <input
+                className="h-13 min-w-0 rounded-[1rem] bg-[#f7f8fa] px-4 text-[16px] font-bold text-[#111827] outline-none placeholder:text-[#b8c0cc]"
+                name="exchange"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                value={exchangeRate}
+                placeholder="1500"
+                onChange={(event) => setExchangeRate(event.target.value)}
+              />
+            </label>
           </section>
 
-          <section className="grid gap-3 rounded-[1.75rem] bg-white p-5">
-            <h2 className="text-[13px] font-bold text-[#8a94a3]">사용한 사람</h2>
-            <div className="grid gap-2">
-              {snapshot.people.map((person) => {
-                const isSelected = debtorIds.has(person.id);
-
-                return (
-                  <button
-                    className={[
-                      "flex h-12 items-center justify-between rounded-[1rem] px-4 text-left transition",
-                      isSelected ? "bg-[#f2f6ff]" : "bg-[#f7f8fa]"
-                    ].join(" ")}
-                    key={person.id}
-                    type="button"
-                    aria-pressed={isSelected}
-                    onClick={() => toggleDebtor(person.id)}
-                  >
-                    <span className="text-[16px] font-bold text-[#111827]">
-                      {person.name}
-                    </span>
-                    <span
-                      className={[
-                        "grid size-6 place-items-center rounded-full border-2 transition",
-                        isSelected
-                          ? "border-[#2f6df6] bg-[#2f6df6] text-white"
-                          : "border-[#d7dde6] bg-white text-transparent"
-                      ].join(" ")}
+          <section className="grid gap-3">
+            {expenseSets.map((expenseSet, index) => (
+              <section
+                className="grid gap-4 rounded-[1.75rem] bg-white p-5"
+                key={expenseSet.id}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-[13px] font-bold text-[#8a94a3]">
+                    지출 항목 {index + 1}
+                  </h2>
+                  {expenseSets.length > 1 && (
+                    <button
+                      className="grid size-9 place-items-center rounded-full bg-[#f7f8fa] text-[#8a94a3] transition hover:bg-[#eef1f4] hover:text-[#111827]"
+                      type="button"
+                      aria-label={`지출 항목 ${index + 1} 삭제`}
+                      onClick={() => removeExpenseSet(expenseSet.id)}
                     >
-                      <Check className="size-4" aria-hidden="true" />
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            {[...debtorIds].map((personId) => (
-              <input key={personId} name="debtors" type="hidden" value={personId} />
-            ))}
-          </section>
+                      <Trash2 className="size-4" aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
 
-          <button
-            className="h-13 rounded-[1.25rem] bg-[#111827] text-[16px] font-bold text-white transition hover:bg-[#1f2937]"
-            type="submit"
-            disabled={!canSubmit}
-          >
-            {isSubmitting ? "추가 중" : "추가하기"}
-          </button>
+                <label className="grid gap-2">
+                  <span className="text-[13px] font-bold text-[#8a94a3]">금액</span>
+                  <input
+                    className="h-13 min-w-0 rounded-[1rem] bg-[#f7f8fa] px-4 text-[16px] font-bold text-[#111827] outline-none placeholder:text-[#b8c0cc]"
+                    name={`cost-${expenseSet.id}`}
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="0.01"
+                    value={expenseSet.cost}
+                    placeholder="0"
+                    onChange={(event) =>
+                      updateExpenseSetCost(expenseSet.id, event.target.value)
+                    }
+                  />
+                </label>
+
+                <div className="grid gap-3">
+                  <h3 className="text-[13px] font-bold text-[#8a94a3]">사용한 사람</h3>
+                  <div className="grid gap-2">
+                    {snapshot.people.map((person) => {
+                      const isSelected = expenseSet.debtorIds.has(person.id);
+
+                      return (
+                        <button
+                          className={[
+                            "flex h-12 items-center justify-between rounded-[1rem] px-4 text-left transition",
+                            isSelected ? "bg-[#f2f6ff]" : "bg-[#f7f8fa]"
+                          ].join(" ")}
+                          key={person.id}
+                          type="button"
+                          aria-pressed={isSelected}
+                          onClick={() =>
+                            toggleExpenseSetDebtor(expenseSet.id, person.id)
+                          }
+                        >
+                          <span className="text-[16px] font-bold text-[#111827]">
+                            {person.name}
+                          </span>
+                          <span
+                            className={[
+                              "grid size-6 place-items-center rounded-full border-2 transition",
+                              isSelected
+                                ? "border-[#2f6df6] bg-[#2f6df6] text-white"
+                                : "border-[#d7dde6] bg-white text-transparent"
+                            ].join(" ")}
+                          >
+                            <Check className="size-4" aria-hidden="true" />
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {[...expenseSet.debtorIds].map((personId) => (
+                    <input
+                      key={personId}
+                      name={`debtors-${expenseSet.id}`}
+                      type="hidden"
+                      value={personId}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+
+            <button
+              className="h-12 rounded-[1.25rem] border border-dashed border-[#c9d0da] bg-white text-[15px] font-bold text-[#2f6df6] transition hover:border-[#2f6df6] hover:bg-[#f2f6ff]"
+              type="button"
+              onClick={addExpenseSet}
+            >
+              항목 추가
+            </button>
+          </section>
         </form>
       )}
 
-      <BackButton onClick={onBack} />
+      <BackButton
+        onClick={onBack}
+        action={{
+          label: isSubmitting ? "추가 중" : "지출 추가",
+          icon: Plus,
+          disabled: !canSubmit,
+          onClick: submitExpense
+        }}
+      />
     </div>
   );
 }

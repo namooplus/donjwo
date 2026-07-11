@@ -45,41 +45,49 @@ export type CreateExpenseInput = {
   name: string;
   date: ExpenseInsert["date"];
   payer: number;
-  cost: number;
   exchange: number;
-  debtorIds: number[];
   index: number;
+  expenseSets: {
+    cost: number;
+    debtorIds: number[];
+  }[];
 };
 
 export async function createExpenseWithDebtors(input: CreateExpenseInput) {
   const supabase = getSupabaseClient();
-  const { data: expense, error: expenseError } = await supabase
+  const { data: expenses, error: expenseError } = await supabase
     .from("Expense")
-    .insert({
-      name: input.name,
-      date: input.date,
-      payer: input.payer,
-      cost: input.cost,
-      exchange: input.exchange,
-      index: input.index
-    })
+    .insert(
+      input.expenseSets.map((expenseSet) => ({
+        name: input.name,
+        date: input.date,
+        payer: input.payer,
+        cost: expenseSet.cost,
+        exchange: input.exchange,
+        index: input.index
+      }))
+    )
     .select("id")
-    .single();
+    .order("id");
 
   if (expenseError) {
     throw expenseError;
   }
 
-  if (input.debtorIds.length === 0) {
-    return;
-  }
-
-  const { error: debtorError } = await supabase.from("ExpenseDebtor").insert(
-    input.debtorIds.map((debtor) => ({
+  const expenseDebtors = expenses.flatMap((expense, index) =>
+    input.expenseSets[index].debtorIds.map((debtor) => ({
       expense: expense.id,
       debtor
     }))
   );
+
+  if (expenseDebtors.length === 0) {
+    return;
+  }
+
+  const { error: debtorError } = await supabase
+    .from("ExpenseDebtor")
+    .insert(expenseDebtors);
 
   if (debtorError) {
     throw debtorError;
@@ -100,5 +108,26 @@ export async function updateExpenseDebtorSettlementStatus(
 
   if (error) {
     throw error;
+  }
+}
+
+export async function deleteExpenseWithDebtors(expenseId: number) {
+  const supabase = getSupabaseClient();
+  const { error: debtorError } = await supabase
+    .from("ExpenseDebtor")
+    .delete()
+    .eq("expense", expenseId);
+
+  if (debtorError) {
+    throw debtorError;
+  }
+
+  const { error: expenseError } = await supabase
+    .from("Expense")
+    .delete()
+    .eq("id", expenseId);
+
+  if (expenseError) {
+    throw expenseError;
   }
 }

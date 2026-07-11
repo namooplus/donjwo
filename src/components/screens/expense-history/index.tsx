@@ -14,6 +14,7 @@ type ExpenseHistoryScreenProps = {
   snapshot: BackendSnapshot | null;
   onBack: () => void;
   onOpenExpenseAdd: () => void;
+  onOpenExpenseDetail: (expenseId: number) => void;
 };
 
 type ExpenseListItem = ReturnType<typeof getExpenseListItems>[number];
@@ -21,7 +22,8 @@ type ExpenseListItem = ReturnType<typeof getExpenseListItems>[number];
 export function ExpenseHistoryScreen({
   snapshot,
   onBack,
-  onOpenExpenseAdd
+  onOpenExpenseAdd,
+  onOpenExpenseDetail
 }: ExpenseHistoryScreenProps) {
   const expenses = useMemo(() => {
     if (!snapshot) {
@@ -54,7 +56,12 @@ export function ExpenseHistoryScreen({
                 </h2>
                 <div className="divide-y divide-[#eef1f4]">
                   {group.expenses.map((expense) => (
-                    <article className="flex items-center gap-3 py-4" key={expense.id}>
+                    <button
+                      className="flex w-full items-center gap-3 py-4 text-left"
+                      key={expense.id}
+                      type="button"
+                      onClick={() => onOpenExpenseDetail(Number(expense.id))}
+                    >
                       <span
                         className={`grid size-11 shrink-0 place-items-center rounded-full ${
                           expense.isSettled
@@ -69,14 +76,15 @@ export function ExpenseHistoryScreen({
                           {expense.name}
                         </h3>
                         <p className="mt-1 truncate text-[13px] font-semibold text-[#9aa3af]">
-                          {expense.payerName} 결제 · {expense.debtorCount}명 사용 · $
+                          {expense.payerName} 결제 · {expense.debtorCount}명 사용 ·{" "}
+                          {expense.settledDebtorCount}명 정산 · $
                           {formatDollar(expense.cost)}
                         </p>
                       </div>
                       <p className="shrink-0 text-right text-[16px] font-bold text-[#111827]">
                         {formatWon(expense.realCost)}원
                       </p>
-                    </article>
+                    </button>
                   ))}
                 </div>
               </section>

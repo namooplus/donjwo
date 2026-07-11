@@ -14,6 +14,7 @@ type ExpenseListItem = {
   dateLabel: string;
   date: string;
   debtorCount: number;
+  settledDebtorCount: number;
   cost: number;
   realCost: number;
   isSettled: boolean;
@@ -124,6 +125,9 @@ export function getExpenseListItems(snapshot: BackendSnapshot): ExpenseListItem[
         dateLabel: formatKoreanDate(expense.date),
         date: expense.date,
         debtorCount: debtorCountsByExpenseId.get(expense.id) ?? 0,
+        settledDebtorCount: debtors.filter(
+          (debtor) => debtor.settlementStatus === "SETTLED"
+        ).length,
         cost: expense.cost,
         realCost: getExpenseAmountInWon(expense),
         isSettled: isExpenseSettled(debtors)
