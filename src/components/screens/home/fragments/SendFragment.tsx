@@ -1,7 +1,8 @@
 import { ReceiptText } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import type { ISODate, Person } from "@/backend/schema";
+import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingCard } from "@/components/common/LoadingCard";
 import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummary";
@@ -9,7 +10,7 @@ import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummar
 type SendFragmentProps = {
   snapshot: BackendSnapshot | null;
   targetSender: Person | null;
-  onSendExpense: (expenseId: number, debtorId: number) => void;
+  onSendExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
 };
 
 type SendExpense = {
@@ -27,6 +28,8 @@ export function SendFragment({
   onSendExpense
 }: SendFragmentProps) {
   const targetSenderId = targetSender?.id ?? null;
+  const [confirmingExpenseId, setConfirmingExpenseId] = useState<string | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
   const expenseGroups = useMemo(() => {
     if (!snapshot || !targetSender) {
       return [];
@@ -34,6 +37,28 @@ export function SendFragment({
 
     return getSendExpenseGroups(snapshot, targetSender);
   }, [snapshot, targetSender]);
+
+  const sendExpense = async (expenseId: string) => {
+    if (targetSenderId === null) {
+      return;
+    }
+
+    if (isConfirming) {
+      return;
+    }
+
+    setIsConfirming(true);
+
+    try {
+      await onSendExpense(Number(expenseId), targetSenderId);
+    } finally {
+      setIsConfirming(false);
+      setConfirmingExpenseId(null);
+    }
+  };
+  const confirmingExpense = expenseGroups
+    .flatMap((group) => group.expenses)
+    .find((expense) => expense.id === confirmingExpenseId);
 
   return (
     <div className="grid gap-5 px-7 pb-32 pt-32 sm:px-9 lg:px-12">
@@ -51,41 +76,56 @@ export function SendFragment({
           </h2>
 
           <div className="mt-5 divide-y divide-[#eef1f4]">
-            {group.expenses.map((expense) => (
-              <article className="flex items-center gap-3 py-4" key={expense.id}>
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#fff1f1] text-[#dc2626]">
-                  <ReceiptText className="size-5" aria-hidden="true" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-[15px] font-bold text-[#111827]">
-                    {expense.name}
-                  </h3>
-                  <p className="mt-1 truncate text-[13px] font-semibold text-[#9aa3af]">
-                    {formatKoreanDate(expense.date)} · {formatWon(expense.cost)}원
-                  </p>
-                </div>
-                <button
-                  className={[
-                    "shrink-0 rounded-full px-3.5 py-2 text-[13px] font-bold transition",
-                    expense.confirmed
-                      ? "bg-[#eef1f4] text-[#8a94a3]"
-                      : "bg-[#111827] text-white"
-                  ].join(" ")}
-                  type="button"
-                  disabled={expense.confirmed}
-                  onClick={() => {
-                    if (targetSenderId !== null) {
-                      onSendExpense(Number(expense.id), targetSenderId);
-                    }
-                  }}
-                >
-                  {expense.confirmed ? "송금 확인중" : "송금했어요"}
-                </button>
-              </article>
-            ))}
+            {group.expenses.map((expense) => {
+              return (
+                <article className="flex items-center gap-3 py-4" key={expense.id}>
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#fff1f1] text-[#dc2626]">
+                    <ReceiptText className="size-5" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-[15px] font-bold text-[#111827]">
+                      {expense.name}
+                    </h3>
+                    <p className="mt-1 truncate text-[13px] font-semibold text-[#9aa3af]">
+                      {formatKoreanDate(expense.date)} · {formatWon(expense.cost)}원
+                    </p>
+                  </div>
+                  <button
+                    className={[
+                      "flex min-w-[5.25rem] shrink-0 items-center justify-center rounded-full px-3.5 py-2 text-[13px] font-bold transition disabled:cursor-not-allowed",
+                      expense.confirmed
+                        ? "bg-[#eef1f4] text-[#8a94a3]"
+                        : "bg-[#111827] text-white"
+                    ].join(" ")}
+                    type="button"
+                    disabled={expense.confirmed}
+                    onClick={() => {
+                      setConfirmingExpenseId(expense.id);
+                    }}
+                  >
+                    {expense.confirmed ? "송금 확인중" : "송금했어요"}
+                  </button>
+                </article>
+              );
+            })}
           </div>
         </section>
       ))}
+
+      {confirmingExpense && (
+        <ConfirmationDialog
+          title="송금했다고 표시할까요?"
+          description={`${confirmingExpense.payer.name}에게 ${formatWon(
+            confirmingExpense.cost
+          )}원을 보낸 것으로 표시해요.`}
+          confirmLabel={isConfirming ? "표시 중" : "표시하기"}
+          isPending={isConfirming}
+          onCancel={() => setConfirmingExpenseId(null)}
+          onConfirm={() => {
+            void sendExpense(confirmingExpense.id);
+          }}
+        />
+      )}
     </div>
   );
 }

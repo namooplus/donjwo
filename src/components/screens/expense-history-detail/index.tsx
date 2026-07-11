@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import type { ExpenseDebtor, SettlementStatus } from "@/backend/schema";
 import { BackButton } from "@/components/common/BackButton";
+import { ConfirmationDialog } from "@/components/common/ConfirmationDialog";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LoadingCard } from "@/components/common/LoadingCard";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
@@ -133,8 +134,12 @@ export function ExpenseHistoryDetailScreen({
       )}
 
       {isConfirmOpen && (
-        <DeleteConfirmDialog
-          isDeleting={isDeleting}
+        <ConfirmationDialog
+          title="공금 사용 내역을 삭제할까요?"
+          description="이 공금 사용 내역과 연결된 정산 상태가 함께 삭제돼요."
+          confirmLabel={isDeleting ? "삭제 중" : "삭제"}
+          isPending={isDeleting}
+          variant="danger"
           onCancel={() => setIsConfirmOpen(false)}
           onConfirm={deleteExpense}
         />
@@ -177,59 +182,6 @@ function DebtorRow({ debtor }: { debtor: ExpenseDebtor & { personName: string } 
         {settlementStatusLabel[debtor.settlementStatus]}
       </span>
     </article>
-  );
-}
-
-function DeleteConfirmDialog({
-  isDeleting,
-  onCancel,
-  onConfirm
-}: {
-  isDeleting: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-40 grid place-items-center bg-[#111827]/40 px-7 backdrop-blur-sm">
-      <div
-        className="w-full max-w-sm rounded-[1.5rem] bg-white p-5 shadow-[0_24px_72px_rgba(15,23,42,0.24)]"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="delete-expense-title"
-        aria-describedby="delete-expense-description"
-      >
-        <h2
-          className="text-[20px] font-black tracking-normal text-[#111827]"
-          id="delete-expense-title"
-        >
-          지출을 삭제할까요?
-        </h2>
-        <p
-          className="mt-2 text-[14px] font-semibold leading-6 text-[#6b7280]"
-          id="delete-expense-description"
-        >
-          이 지출과 연결된 정산 상태가 함께 삭제돼요.
-        </p>
-        <div className="mt-5 grid grid-cols-2 gap-2">
-          <button
-            className="h-12 rounded-[1rem] bg-[#f7f8fa] text-[15px] font-bold text-[#111827] transition hover:bg-[#eef1f4]"
-            type="button"
-            disabled={isDeleting}
-            onClick={onCancel}
-          >
-            취소
-          </button>
-          <button
-            className="h-12 rounded-[1rem] bg-[#dc2626] text-[15px] font-bold text-white transition hover:bg-[#b91c1c] disabled:bg-[#f0a7a7]"
-            type="button"
-            disabled={isDeleting}
-            onClick={onConfirm}
-          >
-            {isDeleting ? "삭제 중" : "삭제"}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 

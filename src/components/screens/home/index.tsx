@@ -25,8 +25,8 @@ const tabs: Tab[] = [
 type HomeScreenProps = {
   snapshot: BackendSnapshot | null;
   onOpenExpenseHistory: () => void;
-  onSendExpense: (expenseId: number, debtorId: number) => void;
-  onReceiveExpense: (expenseId: number, debtorId: number) => void;
+  onSendExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
+  onReceiveExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
 };
 
 export function HomeScreen({
