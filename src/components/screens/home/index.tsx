@@ -12,9 +12,16 @@ import { SummaryTab } from "@/components/screens/home/SummaryTab";
 type HomeScreenProps = {
   snapshot: BackendSnapshot | null;
   onOpenExpenseHistory: () => void;
+  onSendExpense: (expenseId: number, debtorId: number) => void;
+  onReceiveExpense: (expenseId: number, debtorId: number) => void;
 };
 
-export function HomeScreen({ snapshot, onOpenExpenseHistory }: HomeScreenProps) {
+export function HomeScreen({
+  snapshot,
+  onOpenExpenseHistory,
+  onSendExpense,
+  onReceiveExpense
+}: HomeScreenProps) {
   const [activeTab, setActiveTab] = useState<HomeTabKey>("summary");
   const [selectedSenderId, setSelectedSenderId] = useState<number | null>(null);
   const [selectedReceiverId, setSelectedReceiverId] = useState<number | null>(null);
@@ -97,10 +104,18 @@ export function HomeScreen({ snapshot, onOpenExpenseHistory }: HomeScreenProps) 
         <SummaryTab snapshot={snapshot} onOpenExpenseHistory={onOpenExpenseHistory} />
       )}
       {activeTab === "send" && (
-        <SendTab snapshot={snapshot} targetSender={selectedSender} />
+        <SendTab
+          snapshot={snapshot}
+          targetSender={selectedSender}
+          onSendExpense={onSendExpense}
+        />
       )}
       {activeTab === "receive" && (
-        <ReceiveTab snapshot={snapshot} targetReceiver={selectedReceiver} />
+        <ReceiveTab
+          snapshot={snapshot}
+          targetReceiver={selectedReceiver}
+          onReceiveExpense={onReceiveExpense}
+        />
       )}
 
       <FloatingTabs activeTab={activeTab} onChange={setActiveTab} />

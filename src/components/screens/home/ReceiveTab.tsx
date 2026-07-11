@@ -3,11 +3,12 @@ import { useMemo } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import type { ISODate, Person } from "@/backend/schema";
 import { LoadingCard } from "@/components/common/LoadingCard";
-import { formatWon } from "@/features/home/spendingSummary";
+import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummary";
 
 type ReceiveTabProps = {
   snapshot: BackendSnapshot | null;
   targetReceiver: Person | null;
+  onReceiveExpense: (expenseId: number, debtorId: number) => void;
 };
 
 type ReceiveExpense = {
@@ -19,7 +20,11 @@ type ReceiveExpense = {
   confirmed: boolean;
 };
 
-export function ReceiveTab({ snapshot, targetReceiver }: ReceiveTabProps) {
+export function ReceiveTab({
+  snapshot,
+  targetReceiver,
+  onReceiveExpense
+}: ReceiveTabProps) {
   const expenseGroups = useMemo(() => {
     if (!snapshot || !targetReceiver) {
       return [];
@@ -68,6 +73,9 @@ export function ReceiveTab({ snapshot, targetReceiver }: ReceiveTabProps) {
                   ].join(" ")}
                   type="button"
                   disabled={!expense.confirmed}
+                  onClick={() => {
+                    onReceiveExpense(Number(expense.id), expense.debtor.id);
+                  }}
                 >
                   {expense.confirmed ? "받았어요" : "송금 전"}
                 </button>
@@ -82,28 +90,15 @@ export function ReceiveTab({ snapshot, targetReceiver }: ReceiveTabProps) {
 
 function getReceiveExpenseGroups(snapshot: BackendSnapshot, targetReceiver: Person) {
   const peopleById = new Map(snapshot.people.map((person) => [person.id, person]));
-  const exchangesById = new Map(
-    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
-  );
-  const debtorIdsByExpenseId = snapshot.expenseDebtors.reduce(
+  const debtorsByExpenseId = snapshot.expenseDebtors.reduce(
     (debtors, expenseDebtor) => {
-      const expenseDebtors = debtors.get(expenseDebtor.expense) ?? new Set<number>();
-      expenseDebtors.add(expenseDebtor.debtor);
+      const expenseDebtors = debtors.get(expenseDebtor.expense) ?? [];
+      expenseDebtors.push(expenseDebtor);
       debtors.set(expenseDebtor.expense, expenseDebtors);
 
       return debtors;
     },
-    new Map<number, Set<number>>()
-  );
-  const sendersByExpenseId = snapshot.expenseSenders.reduce(
-    (senders, expenseSender) => {
-      const expenseSenders = senders.get(expenseSender.expense) ?? [];
-      expenseSenders.push(expenseSender);
-      senders.set(expenseSender.expense, expenseSenders);
-
-      return senders;
-    },
-    new Map<number, { sender: number; verified: boolean }[]>()
+    new Map<number, typeof snapshot.expenseDebtors>()
   );
   const expenses: ReceiveExpense[] = [];
 
@@ -112,28 +107,24 @@ function getReceiveExpenseGroups(snapshot: BackendSnapshot, targetReceiver: Pers
       continue;
     }
 
-    const debtorIds = debtorIdsByExpenseId.get(expense.id);
+    const debtors = debtorsByExpenseId.get(expense.id) ?? [];
 
-    if (!debtorIds || debtorIds.size === 0) {
+    if (debtors.length === 0) {
       continue;
     }
 
-    const exchange = exchangesById.get(expense.exchange);
-    const amount = (expense.cost * (exchange?.value ?? 1)) / debtorIds.size;
-    const senders = sendersByExpenseId.get(expense.id) ?? [];
+    const amount = getExpenseAmountInWon(expense) / debtors.length;
 
-    for (const debtorId of debtorIds) {
-      if (debtorId === targetReceiver.id) {
+    for (const expenseDebtor of debtors) {
+      if (expenseDebtor.debtor === targetReceiver.id) {
         continue;
       }
 
-      const debtorSenders = senders.filter((sender) => sender.sender === debtorId);
-
-      if (debtorSenders.some((sender) => sender.verified)) {
+      if (expenseDebtor.settlementStatus === "SETTLED") {
         continue;
       }
 
-      const debtor = peopleById.get(debtorId);
+      const debtor = peopleById.get(expenseDebtor.debtor);
 
       if (!debtor) {
         continue;
@@ -145,7 +136,7 @@ function getReceiveExpenseGroups(snapshot: BackendSnapshot, targetReceiver: Pers
         date: expense.date,
         cost: amount,
         debtor,
-        confirmed: debtorSenders.some((sender) => !sender.verified)
+        confirmed: expenseDebtor.settlementStatus === "SETTLING"
       });
     }
   }

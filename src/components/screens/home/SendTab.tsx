@@ -3,11 +3,12 @@ import { useMemo } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import type { ISODate, Person } from "@/backend/schema";
 import { LoadingCard } from "@/components/common/LoadingCard";
-import { formatWon } from "@/features/home/spendingSummary";
+import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummary";
 
 type SendTabProps = {
   snapshot: BackendSnapshot | null;
   targetSender: Person | null;
+  onSendExpense: (expenseId: number, debtorId: number) => void;
 };
 
 type SendExpense = {
@@ -19,7 +20,8 @@ type SendExpense = {
   confirmed: boolean;
 };
 
-export function SendTab({ snapshot, targetSender }: SendTabProps) {
+export function SendTab({ snapshot, targetSender, onSendExpense }: SendTabProps) {
+  const targetSenderId = targetSender?.id ?? null;
   const expenseGroups = useMemo(() => {
     if (!snapshot || !targetSender) {
       return [];
@@ -68,6 +70,11 @@ export function SendTab({ snapshot, targetSender }: SendTabProps) {
                   ].join(" ")}
                   type="button"
                   disabled={expense.confirmed}
+                  onClick={() => {
+                    if (targetSenderId !== null) {
+                      onSendExpense(Number(expense.id), targetSenderId);
+                    }
+                  }}
                 >
                   {expense.confirmed ? "송금 확인중" : "송금했어요"}
                 </button>
@@ -82,32 +89,15 @@ export function SendTab({ snapshot, targetSender }: SendTabProps) {
 
 function getSendExpenseGroups(snapshot: BackendSnapshot, targetSender: Person) {
   const peopleById = new Map(snapshot.people.map((person) => [person.id, person]));
-  const exchangesById = new Map(
-    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
-  );
-  const debtorIdsByExpenseId = snapshot.expenseDebtors.reduce(
+  const debtorsByExpenseId = snapshot.expenseDebtors.reduce(
     (debtors, expenseDebtor) => {
-      const expenseDebtors = debtors.get(expenseDebtor.expense) ?? new Set<number>();
-      expenseDebtors.add(expenseDebtor.debtor);
+      const expenseDebtors = debtors.get(expenseDebtor.expense) ?? [];
+      expenseDebtors.push(expenseDebtor);
       debtors.set(expenseDebtor.expense, expenseDebtors);
 
       return debtors;
     },
-    new Map<number, Set<number>>()
-  );
-  const targetSendersByExpenseId = snapshot.expenseSenders.reduce(
-    (senders, expenseSender) => {
-      if (expenseSender.sender !== targetSender.id) {
-        return senders;
-      }
-
-      const expenseSenders = senders.get(expenseSender.expense) ?? [];
-      expenseSenders.push(expenseSender);
-      senders.set(expenseSender.expense, expenseSenders);
-
-      return senders;
-    },
-    new Map<number, { verified: boolean }[]>()
+    new Map<number, typeof snapshot.expenseDebtors>()
   );
   const expenses: SendExpense[] = [];
 
@@ -116,15 +106,14 @@ function getSendExpenseGroups(snapshot: BackendSnapshot, targetSender: Person) {
       continue;
     }
 
-    const debtorIds = debtorIdsByExpenseId.get(expense.id);
+    const debtors = debtorsByExpenseId.get(expense.id) ?? [];
+    const targetDebtor = debtors.find((debtor) => debtor.debtor === targetSender.id);
 
-    if (!debtorIds?.has(targetSender.id)) {
+    if (!targetDebtor) {
       continue;
     }
 
-    const targetSenders = targetSendersByExpenseId.get(expense.id) ?? [];
-
-    if (targetSenders.some((sender) => sender.verified)) {
+    if (targetDebtor.settlementStatus === "SETTLED") {
       continue;
     }
 
@@ -134,8 +123,7 @@ function getSendExpenseGroups(snapshot: BackendSnapshot, targetSender: Person) {
       continue;
     }
 
-    const exchange = exchangesById.get(expense.exchange);
-    const cost = (expense.cost * (exchange?.value ?? 1)) / debtorIds.size;
+    const cost = getExpenseAmountInWon(expense) / debtors.length;
 
     expenses.push({
       id: String(expense.id),
@@ -143,7 +131,7 @@ function getSendExpenseGroups(snapshot: BackendSnapshot, targetSender: Person) {
       date: expense.date,
       cost,
       payer,
-      confirmed: targetSenders.some((sender) => !sender.verified)
+      confirmed: targetDebtor.settlementStatus === "SETTLING"
     });
   }
 

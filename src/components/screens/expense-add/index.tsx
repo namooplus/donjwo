@@ -1,6 +1,6 @@
 import { Check, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import type { BackendSnapshot } from "@/backend/queries";
+import type { BackendSnapshot, CreateExpenseInput } from "@/backend/queries";
 import { BackButton } from "@/components/common/BackButton";
 import {
   type DateParts,
@@ -16,6 +16,7 @@ import { ScreenHeader } from "@/components/common/ScreenHeader";
 type ExpenseAddScreenProps = {
   snapshot: BackendSnapshot | null;
   onBack: () => void;
+  onCreateExpense: (input: CreateExpenseInput) => Promise<void>;
 };
 
 type PickerFieldProps = {
@@ -36,28 +37,34 @@ type DateFieldProps = {
   onChange: (value: DateParts) => void;
 };
 
-export function ExpenseAddScreen({ snapshot, onBack }: ExpenseAddScreenProps) {
+export function ExpenseAddScreen({
+  snapshot,
+  onBack,
+  onCreateExpense
+}: ExpenseAddScreenProps) {
+  const [name, setName] = useState("");
+  const [cost, setCost] = useState("");
+  const [exchangeRate, setExchangeRate] = useState("1500");
   const [payerId, setPayerId] = useState<number | null>(null);
-  const [exchangeId, setExchangeId] = useState<number | null>(null);
   const [dateParts, setDateParts] = useState(() => toDateParts(new Date()));
   const [debtorIds, setDebtorIds] = useState<Set<number>>(new Set());
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const payerOptions =
     snapshot?.people.map((person) => ({
       value: person.id,
       label: person.name
     })) ?? [];
-  const exchangeOptions =
-    snapshot?.exchanges.map((exchange) => ({
-      value: exchange.id,
-      label: exchange.name
-    })) ?? [];
   const selectedPayerId = payerId ?? snapshot?.people[0]?.id ?? null;
-  const selectedExchangeId = exchangeId ?? snapshot?.exchanges[0]?.id ?? null;
   const selectedPayerName =
     snapshot?.people.find((person) => person.id === selectedPayerId)?.name ?? "선택";
-  const selectedExchangeName =
-    snapshot?.exchanges.find((exchange) => exchange.id === selectedExchangeId)?.name ??
-    "선택";
+  const canSubmit =
+    Boolean(snapshot) &&
+    Boolean(name.trim()) &&
+    Boolean(selectedPayerId) &&
+    Number(cost) > 0 &&
+    Number(exchangeRate) > 0 &&
+    debtorIds.size > 0 &&
+    !isSubmitting;
 
   const toggleDebtor = (personId: number) => {
     setDebtorIds((currentIds) => {
@@ -82,8 +89,29 @@ export function ExpenseAddScreen({ snapshot, onBack }: ExpenseAddScreenProps) {
       {snapshot && (
         <form
           className="grid gap-5"
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault();
+
+            if (!snapshot || !selectedPayerId || !canSubmit) {
+              return;
+            }
+
+            setIsSubmitting(true);
+
+            try {
+              await onCreateExpense({
+                name: name.trim(),
+                date: formatISODate(dateParts) as CreateExpenseInput["date"],
+                payer: selectedPayerId,
+                cost: Number(cost),
+                exchange: Number(exchangeRate),
+                debtorIds: [...debtorIds],
+                index:
+                  Math.max(0, ...snapshot.expenses.map((expense) => expense.index)) + 1
+              });
+            } finally {
+              setIsSubmitting(false);
+            }
           }}
         >
           <section className="grid gap-4 rounded-[1.75rem] bg-white p-5">
@@ -93,7 +121,9 @@ export function ExpenseAddScreen({ snapshot, onBack }: ExpenseAddScreenProps) {
                 className="h-13 rounded-[1rem] bg-[#f7f8fa] px-4 text-[16px] font-bold text-[#111827] outline-none placeholder:text-[#b8c0cc]"
                 name="name"
                 type="text"
+                value={name}
                 placeholder="예: 장보기"
+                onChange={(event) => setName(event.target.value)}
               />
             </label>
 
@@ -118,15 +148,20 @@ export function ExpenseAddScreen({ snapshot, onBack }: ExpenseAddScreenProps) {
             />
 
             <div className="grid grid-cols-[1fr_1.1fr] gap-3">
-              <PickerField
-                label="통화"
-                ariaLabel="통화 선택"
-                value={selectedExchangeId}
-                displayValue={selectedExchangeName}
-                options={exchangeOptions}
-                inputName="exchange"
-                onChange={setExchangeId}
-              />
+              <label className="grid gap-2">
+                <span className="text-[13px] font-bold text-[#8a94a3]">환율</span>
+                <input
+                  className="h-13 min-w-0 rounded-[1rem] bg-[#f7f8fa] px-4 text-[16px] font-bold text-[#111827] outline-none placeholder:text-[#b8c0cc]"
+                  name="exchange"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={exchangeRate}
+                  placeholder="1500"
+                  onChange={(event) => setExchangeRate(event.target.value)}
+                />
+              </label>
 
               <label className="grid gap-2">
                 <span className="text-[13px] font-bold text-[#8a94a3]">금액</span>
@@ -137,7 +172,9 @@ export function ExpenseAddScreen({ snapshot, onBack }: ExpenseAddScreenProps) {
                   inputMode="decimal"
                   min="0"
                   step="0.01"
+                  value={cost}
                   placeholder="0"
+                  onChange={(event) => setCost(event.target.value)}
                 />
               </label>
             </div>
@@ -185,8 +222,9 @@ export function ExpenseAddScreen({ snapshot, onBack }: ExpenseAddScreenProps) {
           <button
             className="h-13 rounded-[1.25rem] bg-[#111827] text-[16px] font-bold text-white transition hover:bg-[#1f2937]"
             type="submit"
+            disabled={!canSubmit}
           >
-            추가하기
+            {isSubmitting ? "추가 중" : "추가하기"}
           </button>
         </form>
       )}

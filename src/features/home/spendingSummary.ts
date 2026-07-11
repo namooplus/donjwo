@@ -54,23 +54,14 @@ export function formatDollar(amount: number) {
 }
 
 export function getRealExpenseTotal(snapshot: BackendSnapshot) {
-  const exchangesById = new Map(
-    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
-  );
-
   return snapshot.expenses.reduce((total, expense) => {
-    const exchange = exchangesById.get(expense.exchange);
-
-    return total + expense.cost * (exchange?.value ?? 1);
+    return total + getExpenseAmountInWon(expense);
   }, 0);
 }
 
 export function getWeeklyExpenseSummary(
   snapshot: BackendSnapshot
 ): WeeklyExpenseSummary[] {
-  const exchangesById = new Map(
-    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
-  );
   const currentWeekStart = getMondayStart(new Date());
   const weekCount =
     Math.max(
@@ -88,9 +79,7 @@ export function getWeeklyExpenseSummary(
         return weekTotal;
       }
 
-      const exchange = exchangesById.get(expense.exchange);
-
-      return weekTotal + expense.cost * (exchange?.value ?? 1);
+      return weekTotal + getExpenseAmountInWon(expense);
     }, 0);
 
     return {
@@ -104,9 +93,6 @@ export function getWeeklyExpenseSummary(
 
 export function getExpenseListItems(snapshot: BackendSnapshot): ExpenseListItem[] {
   const peopleById = new Map(snapshot.people.map((person) => [person.id, person]));
-  const exchangesById = new Map(
-    snapshot.exchanges.map((exchange) => [exchange.id, exchange])
-  );
   const debtorCountsByExpenseId = snapshot.expenseDebtors.reduce(
     (counts, expenseDebtor) => {
       counts.set(expenseDebtor.expense, (counts.get(expenseDebtor.expense) ?? 0) + 1);
@@ -115,34 +101,21 @@ export function getExpenseListItems(snapshot: BackendSnapshot): ExpenseListItem[
     },
     new Map<number, number>()
   );
-  const debtorIdsByExpenseId = snapshot.expenseDebtors.reduce(
+  const debtorsByExpenseId = snapshot.expenseDebtors.reduce(
     (debtors, expenseDebtor) => {
-      const expenseDebtors = debtors.get(expenseDebtor.expense) ?? new Set<number>();
-      expenseDebtors.add(expenseDebtor.debtor);
+      const expenseDebtors = debtors.get(expenseDebtor.expense) ?? [];
+      expenseDebtors.push(expenseDebtor);
       debtors.set(expenseDebtor.expense, expenseDebtors);
 
       return debtors;
     },
-    new Map<number, Set<number>>()
-  );
-  const sendersByExpenseId = snapshot.expenseSenders.reduce(
-    (senders, expenseSender) => {
-      const expenseSenders = senders.get(expenseSender.expense) ?? [];
-      expenseSenders.push(expenseSender);
-      senders.set(expenseSender.expense, expenseSenders);
-
-      return senders;
-    },
-    new Map<number, typeof snapshot.expenseSenders>()
+    new Map<number, typeof snapshot.expenseDebtors>()
   );
 
   return snapshot.expenses
     .map((expense) => {
       const payer = peopleById.get(expense.payer);
-      const exchange = exchangesById.get(expense.exchange);
-      const exchangeRate = exchange?.value ?? 1;
-      const debtorIds = debtorIdsByExpenseId.get(expense.id) ?? new Set<number>();
-      const senders = sendersByExpenseId.get(expense.id) ?? [];
+      const debtors = debtorsByExpenseId.get(expense.id) ?? [];
 
       return {
         id: String(expense.id),
@@ -152,8 +125,8 @@ export function getExpenseListItems(snapshot: BackendSnapshot): ExpenseListItem[
         date: expense.date,
         debtorCount: debtorCountsByExpenseId.get(expense.id) ?? 0,
         cost: expense.cost,
-        realCost: expense.cost * exchangeRate,
-        isSettled: isExpenseSettled(debtorIds, senders)
+        realCost: getExpenseAmountInWon(expense),
+        isSettled: isExpenseSettled(debtors)
       };
     })
     .sort((left, right) => {
@@ -167,15 +140,16 @@ export function getExpenseListItems(snapshot: BackendSnapshot): ExpenseListItem[
     });
 }
 
-function isExpenseSettled(
-  debtorIds: Set<number>,
-  senders: { sender: number; verified: boolean }[]
-) {
-  if (debtorIds.size === 0 || senders.length !== debtorIds.size) {
+export function getExpenseAmountInWon(expense: { cost: number; exchange: number }) {
+  return expense.cost * (expense.exchange || 1);
+}
+
+function isExpenseSettled(debtors: { settlementStatus: string }[]) {
+  if (debtors.length === 0) {
     return false;
   }
 
-  return senders.every((sender) => sender.verified && debtorIds.has(sender.sender));
+  return debtors.every((debtor) => debtor.settlementStatus === "SETTLED");
 }
 
 function formatKoreanDate(date: string) {

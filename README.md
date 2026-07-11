@@ -95,14 +95,13 @@ fallback, but new local env files should use the publishable-key name.
 Live Supabase tables:
 
 - `Person`: `id`, `name`
-- `Exchange`: `id`, `name`, `value`
-- `Expense`: `id`, `name`, `index`, `date`, `payer`, `cost`, `exchange`
-- `ExpenseDebtor`: `expense`, `debtor`
-- `ExpenseSender`: `expense`, `sender`, `verified`
+- `Expense`: `id`, `created_at`, `name`, `index`, `date`, `payer`, `cost`,
+  `exchange`, `draft`
+- `ExpenseDebtor`: `expense`, `debtor`, `settlementStatus`
 
-The requested `debtor`, `sender`, and `verifiedSender` application concepts are
-represented in the live database through `ExpenseDebtor` and `ExpenseSender`.
-`verifiedSender` is derived from `ExpenseSender` rows where `verified` is true.
+`Expense.exchange` stores the numeric exchange rate used to convert the expense
+amount to won. `ExpenseDebtor.settlementStatus` is a `SettlementStatus` enum with
+`UNSETTLED`, `SETTLING`, and `SETTLED`.
 
 Use `getSupabaseClient` from `src/backend/supabase.ts` when adding queries.
 Use `getBackendSnapshot` from `src/backend/queries.ts` when reading the current
@@ -111,11 +110,11 @@ Expense UI treats a missing snapshot as loading, including config or fetch
 failure cases.
 
 The Send tab target sender is selected from `Person` rows. It lists expenses
-where that person is a debtor, hides expenses with a verified `ExpenseSender`
-row for that person, and shows unverified sender rows as pending confirmation.
+where that person is a debtor, hides `SETTLED` debtor rows, and shows `SETTLING`
+rows as pending confirmation.
 The Receive tab target receiver is selected from `Person` rows. It lists
-expenses paid by that person, grouped by debtor, and hides verified
-`ExpenseSender` rows.
+expenses paid by that person, grouped by debtor, and hides `SETTLED` debtor
+rows.
 
 ## Documentation Maintenance
 

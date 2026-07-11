@@ -2,78 +2,58 @@ export type EntityId = number;
 
 export type ISODate = `${number}-${number}-${number}`;
 
-export type TableName =
-  | "Person"
-  | "Exchange"
-  | "Expense"
-  | "ExpenseDebtor"
-  | "ExpenseSender";
+export type TableName = "Person" | "Expense" | "ExpenseDebtor";
 
-export interface Person {
+export type SettlementStatus = "UNSETTLED" | "SETTLING" | "SETTLED";
+
+export type Person = {
   id: EntityId;
   name: string;
-}
+};
 
-export interface Exchange {
+export type Expense = {
   id: EntityId;
-  name: string;
-  value: number;
-}
-
-export interface Expense {
-  id: EntityId;
+  created_at: string;
   name: string;
   index: number;
   date: ISODate;
   payer: EntityId;
   cost: number;
-  exchange: EntityId;
-}
+  exchange: number;
+  draft: boolean;
+};
 
-export interface ExpenseDebtor {
+export type ExpenseDebtor = {
   expense: EntityId;
   debtor: EntityId;
-}
+  settlementStatus: SettlementStatus;
+};
 
-export interface ExpenseSender {
-  expense: EntityId;
-  sender: EntityId;
-  verified: boolean;
-}
-
-export interface HydratedExpense extends Omit<Expense, "payer" | "exchange"> {
+export type HydratedExpense = Omit<Expense, "payer"> & {
   payer: Person;
-  exchange: Exchange;
-  debtor: Person[];
-  sender: Person[];
-  verifiedSender: Person[];
-}
+  debtors: (Person & { settlementStatus: SettlementStatus })[];
+};
 
 export type PersonInsert = Omit<Person, "id"> & Partial<Pick<Person, "id">>;
-export type ExchangeInsert = Omit<Exchange, "id"> & Partial<Pick<Exchange, "id">>;
-export type ExpenseInsert = Omit<Expense, "id"> & Partial<Pick<Expense, "id">>;
-export type ExpenseDebtorInsert = ExpenseDebtor;
-export type ExpenseSenderInsert = ExpenseSender;
+export type ExpenseInsert = Pick<Expense, "cost" | "date" | "payer"> &
+  Partial<Pick<Expense, "created_at" | "draft" | "exchange" | "id" | "index" | "name">>;
+export type ExpenseDebtorInsert = Pick<ExpenseDebtor, "debtor" | "expense"> &
+  Partial<Pick<ExpenseDebtor, "settlementStatus">>;
 
 export type PersonUpdate = Partial<Person>;
-export type ExchangeUpdate = Partial<Exchange>;
 export type ExpenseUpdate = Partial<Expense>;
 export type ExpenseDebtorUpdate = Partial<ExpenseDebtor>;
-export type ExpenseSenderUpdate = Partial<ExpenseSender>;
 
-export interface SupabaseDatabase {
+export type SupabaseDatabase = {
+  __InternalSupabase: {
+    PostgrestVersion: "14.5";
+  };
   public: {
     Tables: {
       Person: {
         Row: Person;
         Insert: PersonInsert;
         Update: PersonUpdate;
-        Relationships: [];
-      };
-      Exchange: {
-        Row: Exchange;
-        Insert: ExchangeInsert;
-        Update: ExchangeUpdate;
         Relationships: [];
       };
       Expense: {
@@ -84,13 +64,8 @@ export interface SupabaseDatabase {
           {
             foreignKeyName: "Expense_payer_fkey";
             columns: ["payer"];
+            isOneToOne: false;
             referencedRelation: "Person";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "Expense_exchange_fkey";
-            columns: ["exchange"];
-            referencedRelation: "Exchange";
             referencedColumns: ["id"];
           }
         ];
@@ -103,36 +78,25 @@ export interface SupabaseDatabase {
           {
             foreignKeyName: "ExpenseDebtor_expense_fkey";
             columns: ["expense"];
+            isOneToOne: false;
             referencedRelation: "Expense";
             referencedColumns: ["id"];
           },
           {
             foreignKeyName: "ExpenseDebtor_debtor_fkey";
             columns: ["debtor"];
-            referencedRelation: "Person";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
-      ExpenseSender: {
-        Row: ExpenseSender;
-        Insert: ExpenseSenderInsert;
-        Update: ExpenseSenderUpdate;
-        Relationships: [
-          {
-            foreignKeyName: "ExpenseSender_expense_fkey";
-            columns: ["expense"];
-            referencedRelation: "Expense";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "ExpenseSender_sender_fkey";
-            columns: ["sender"];
+            isOneToOne: false;
             referencedRelation: "Person";
             referencedColumns: ["id"];
           }
         ];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: {
+      SettlementStatus: SettlementStatus;
+    };
+    CompositeTypes: Record<string, never>;
   };
-}
+};

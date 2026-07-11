@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
-import { getBackendSnapshot } from "@/backend/queries";
+import {
+  type CreateExpenseInput,
+  createExpenseWithDebtors,
+  getBackendSnapshot,
+  updateExpenseDebtorSettlementStatus
+} from "@/backend/queries";
 import { hasSupabaseConfig } from "@/backend/supabase";
 import { ExpenseAddScreen } from "@/components/screens/expense-add";
 import { ExpenseHistoryScreen } from "@/components/screens/expense-history";
@@ -12,12 +17,22 @@ function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenKey>("root");
   const [expenseSnapshot, setExpenseSnapshot] = useState<BackendSnapshot | null>(null);
 
+  const refreshSnapshot = () => {
+    if (!hasSupabaseConfig()) {
+      return Promise.resolve();
+    }
+
+    return getBackendSnapshot()
+      .then(setExpenseSnapshot)
+      .catch(() => {});
+  };
+
   useEffect(() => {
+    let isCurrent = true;
+
     if (!hasSupabaseConfig()) {
       return;
     }
-
-    let isCurrent = true;
 
     getBackendSnapshot()
       .then((snapshot) => {
@@ -32,6 +47,22 @@ function App() {
     };
   }, []);
 
+  const markExpenseSent = async (expenseId: number, debtorId: number) => {
+    await updateExpenseDebtorSettlementStatus(expenseId, debtorId, "SETTLING");
+    await refreshSnapshot();
+  };
+
+  const markExpenseReceived = async (expenseId: number, debtorId: number) => {
+    await updateExpenseDebtorSettlementStatus(expenseId, debtorId, "SETTLED");
+    await refreshSnapshot();
+  };
+
+  const createExpense = async (input: CreateExpenseInput) => {
+    await createExpenseWithDebtors(input);
+    await refreshSnapshot();
+    setActiveScreen("expense-history");
+  };
+
   return (
     <main className="min-h-screen bg-[#f2f4f6] text-[#111827]">
       <div className="min-h-screen w-full overflow-hidden">
@@ -39,6 +70,8 @@ function App() {
           <HomeScreen
             snapshot={expenseSnapshot}
             onOpenExpenseHistory={() => setActiveScreen("expense-history")}
+            onSendExpense={markExpenseSent}
+            onReceiveExpense={markExpenseReceived}
           />
         )}
         {activeScreen === "expense-history" && (
@@ -52,6 +85,7 @@ function App() {
           <ExpenseAddScreen
             snapshot={expenseSnapshot}
             onBack={() => setActiveScreen("expense-history")}
+            onCreateExpense={createExpense}
           />
         )}
       </div>

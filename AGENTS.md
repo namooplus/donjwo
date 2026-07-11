@@ -47,12 +47,12 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
 - The Send tab target sender is selected from the fixed title using people from
   the `Person` table.
 - The Send tab lists expenses where the selected target sender is a debtor,
-  hides expenses with a verified `ExpenseSender` row for that person, and shows
-  pending sender rows as disabled `송금 확인중` items.
+  hides `ExpenseDebtor` rows with `settlementStatus` of `SETTLED`, and shows
+  `SETTLING` rows as disabled `송금 확인중` items.
 - The Receive tab target receiver is selected from the fixed title using people
   from the `Person` table.
 - The Receive tab lists expenses paid by the selected receiver, grouped by
-  debtor, and hides expenses with verified `ExpenseSender` rows.
+  debtor, and hides `ExpenseDebtor` rows with `settlementStatus` of `SETTLED`.
 - The Home timeline has a `자세히 보기` action that opens the `공금 사용 내역`
   expense history screen.
 - The expense history screen has a floating Add action that opens the
@@ -71,8 +71,9 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
   client-side snapshot.
 - Expense UI receives `BackendSnapshot | null`; `null` is the loading state and
   remains as a rotating spinner when config or fetch fails.
-- The Home screen treats real expense in won as `expense.cost * exchange.value`.
-  If an exchange row is missing, it falls back to `expense.cost`.
+- The Home screen treats real expense in won as
+  `expense.cost * expense.exchange`. If the exchange value is missing or `0`, it
+  falls back to `expense.cost`.
 - The expense history screen lists the same real expense amount in won.
 - Week 1 starts on Monday, June 22, 2026. Additional weeks are generated from
   Monday starts through the current week.
