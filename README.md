@@ -63,8 +63,10 @@ bun run format
 - `src/backend/queries.ts` contains typed Supabase table reads.
 - `src/App.tsx` contains the current application shell composition.
 - `src/components/common` contains shared UI components.
-- `ScreenHeader` and `BackButton` provide shared screen chrome.
-- `src/components/screens/home/index.tsx` contains the root Home screen.
+- `ScreenHeader`, `BackButton`, and `FloatingPicker` provide shared screen
+  chrome and overlays.
+- `src/components/screens/home/index.tsx` contains the root Home screen and the
+  Send tab target person picker.
 - `src/components/screens/home` contains Summary, Send, and Receive tab
   content.
 - `src/components/screens` also contains pushed screen components.
@@ -105,6 +107,10 @@ Use `getBackendSnapshot` from `src/backend/queries.ts` when reading the current
 client-side snapshot.
 Expense UI treats a missing snapshot as loading, including config or fetch
 failure cases.
+
+The Send tab target sender is selected from `Person` rows. It lists expenses
+where that person is a debtor, hides expenses with a verified `ExpenseSender`
+row for that person, and shows unverified sender rows as pending confirmation.
 
 ## Documentation Maintenance
 

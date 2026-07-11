@@ -18,6 +18,8 @@
     min-height: 100vh;
     margin: 0;
     overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   button {

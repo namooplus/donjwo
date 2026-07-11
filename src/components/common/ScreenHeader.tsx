@@ -1,5 +1,7 @@
+import type { ReactNode } from "react";
+
 type ScreenHeaderProps = {
-  title: string;
+  title: ReactNode;
 };
 
 export function ScreenHeader({ title }: ScreenHeaderProps) {
