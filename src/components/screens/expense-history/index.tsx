@@ -72,8 +72,13 @@ export function ExpenseHistoryScreen({
                       </span>
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate text-[16px] font-bold text-[#111827]">
-                          {expense.name}
+                          {expense.title}
                         </h3>
+                        {expense.description && (
+                          <p className="mt-1 line-clamp-2 text-[13px] font-semibold leading-snug text-[#6b7280]">
+                            {expense.description}
+                          </p>
+                        )}
                         <p className="mt-1 truncate text-[13px] font-semibold text-[#9aa3af]">
                           {expense.payerName} 결제 · {expense.debtorCount}명 사용 ·{" "}
                           {expense.settledDebtorCount}명 정산 · $

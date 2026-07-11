@@ -95,8 +95,8 @@ fallback, but new local env files should use the publishable-key name.
 Live Supabase tables:
 
 - `Person`: `id`, `name`
-- `Expense`: `id`, `created_at`, `name`, `index`, `date`, `payer`, `cost`,
-  `exchange`, `draft`
+- `Expense`: `id`, `created_at`, `title`, `description`, `index`, `date`,
+  `payer`, `cost`, `exchange`, `draft`
 - `ExpenseDebtor`: `expense`, `debtor`, `settlementStatus`
 
 `Expense.exchange` stores the numeric exchange rate used to convert the expense

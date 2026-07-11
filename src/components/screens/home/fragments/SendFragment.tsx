@@ -15,7 +15,8 @@ type SendFragmentProps = {
 
 type SendExpense = {
   id: string;
-  name: string;
+  title: string;
+  description: string | null;
   date: ISODate;
   cost: number;
   payer: Person;
@@ -84,8 +85,13 @@ export function SendFragment({
                   </span>
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-[15px] font-bold text-[#111827]">
-                      {expense.name}
+                      {expense.title}
                     </h3>
+                    {expense.description && (
+                      <p className="mt-1 line-clamp-2 text-[13px] font-semibold leading-snug text-[#6b7280]">
+                        {expense.description}
+                      </p>
+                    )}
                     <p className="mt-1 truncate text-[13px] font-semibold text-[#9aa3af]">
                       {formatKoreanDate(expense.date)} · {formatWon(expense.cost)}원
                     </p>
@@ -170,7 +176,8 @@ function getSendExpenseGroups(snapshot: BackendSnapshot, targetSender: Person) {
 
     expenses.push({
       id: String(expense.id),
-      name: expense.name,
+      title: expense.title,
+      description: expense.description,
       date: expense.date,
       cost,
       payer,

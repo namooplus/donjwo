@@ -99,8 +99,13 @@ export function ExpenseHistoryDetailScreen({
             </span>
             <div>
               <h1 className="text-[26px] font-black leading-tight tracking-normal text-[#111827]">
-                {detail.expense.name}
+                {detail.expense.title}
               </h1>
+              {detail.expense.description && (
+                <p className="mt-2 whitespace-pre-line text-[15px] font-semibold leading-relaxed text-[#4b5563]">
+                  {detail.expense.description}
+                </p>
+              )}
               <p className="mt-2 text-[14px] font-semibold text-[#8a94a3]">
                 {formatKoreanDate(detail.expense.date)}
               </p>

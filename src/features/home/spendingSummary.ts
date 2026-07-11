@@ -9,7 +9,8 @@ type WeeklyExpenseSummary = {
 
 type ExpenseListItem = {
   id: string;
-  name: string;
+  title: string;
+  description: string | null;
   payerName: string;
   dateLabel: string;
   date: string;
@@ -120,7 +121,8 @@ export function getExpenseListItems(snapshot: BackendSnapshot): ExpenseListItem[
 
       return {
         id: String(expense.id),
-        name: expense.name,
+        title: expense.title,
+        description: expense.description,
         payerName: payer?.name ?? "알 수 없음",
         dateLabel: formatKoreanDate(expense.date),
         date: expense.date,

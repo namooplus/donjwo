@@ -14,7 +14,8 @@ export type Person = {
 export type Expense = {
   id: EntityId;
   created_at: string;
-  name: string;
+  title: string;
+  description: string | null;
   index: number;
   date: ISODate;
   payer: EntityId;
@@ -35,8 +36,10 @@ export type HydratedExpense = Omit<Expense, "payer"> & {
 };
 
 export type PersonInsert = Omit<Person, "id"> & Partial<Pick<Person, "id">>;
-export type ExpenseInsert = Pick<Expense, "cost" | "date" | "payer"> &
-  Partial<Pick<Expense, "created_at" | "draft" | "exchange" | "id" | "index" | "name">>;
+export type ExpenseInsert = Pick<Expense, "cost" | "date" | "payer" | "title"> &
+  Partial<
+    Pick<Expense, "created_at" | "description" | "draft" | "exchange" | "id" | "index">
+  >;
 export type ExpenseDebtorInsert = Pick<ExpenseDebtor, "debtor" | "expense"> &
   Partial<Pick<ExpenseDebtor, "settlementStatus">>;
 

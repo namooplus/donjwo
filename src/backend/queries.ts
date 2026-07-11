@@ -1,6 +1,7 @@
 import type {
   Expense,
   ExpenseDebtor,
+  ExpenseDebtorInsert,
   ExpenseInsert,
   Person,
   SettlementStatus
@@ -42,13 +43,14 @@ export async function getBackendSnapshot(): Promise<BackendSnapshot> {
 }
 
 export type CreateExpenseInput = {
-  name: string;
+  title: string;
   date: ExpenseInsert["date"];
   payer: number;
   exchange: number;
   index: number;
   expenseSets: {
     cost: number;
+    description: string | null;
     debtorIds: number[];
   }[];
 };
@@ -59,7 +61,8 @@ export async function createExpenseWithDebtors(input: CreateExpenseInput) {
     .from("Expense")
     .insert(
       input.expenseSets.map((expenseSet) => ({
-        name: input.name,
+        title: input.title,
+        description: expenseSet.description,
         date: input.date,
         payer: input.payer,
         cost: expenseSet.cost,
@@ -75,10 +78,13 @@ export async function createExpenseWithDebtors(input: CreateExpenseInput) {
   }
 
   const expenseDebtors = expenses.flatMap((expense, index) =>
-    input.expenseSets[index].debtorIds.map((debtor) => ({
-      expense: expense.id,
-      debtor
-    }))
+    input.expenseSets[index].debtorIds.map(
+      (debtor): ExpenseDebtorInsert => ({
+        expense: expense.id,
+        debtor,
+        settlementStatus: debtor === input.payer ? "SETTLED" : "UNSETTLED"
+      })
+    )
   );
 
   if (expenseDebtors.length === 0) {

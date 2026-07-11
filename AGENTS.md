@@ -69,6 +69,8 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
 - Keep typed Supabase reads and writes under `src/backend`.
 - Prefer `getBackendSnapshot` from `src/backend/queries.ts` for the current
   client-side snapshot.
+- Expense rows use `title` for the visible label and optional `description` for
+  detail text.
 - Expense UI receives `BackendSnapshot | null`; `null` is the loading state and
   remains as a rotating spinner when config or fetch fails.
 - The Home screen treats real expense in won as
