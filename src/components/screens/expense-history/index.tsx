@@ -37,7 +37,7 @@ export function ExpenseHistoryScreen({
 
   return (
     <div className="min-h-screen px-7 pb-32 pt-32 sm:px-9 lg:px-12">
-      <ScreenHeader title="공금 사용 내역" />
+      <ScreenHeader title="공금 사용 내역" background="solid" />
 
       <section>
         {!snapshot && <LoadingCard />}
@@ -50,7 +50,7 @@ export function ExpenseHistoryScreen({
           <div className="grid gap-6">
             {expenseGroups.map((group) => (
               <section key={group.date}>
-                <h2 className="sticky top-24 z-[1] bg-[#f2f4f6]/95 py-2 text-[14px] font-bold text-[#6b7280] backdrop-blur">
+                <h2 className="sticky top-23 z-[1] bg-[#f2f4f6] py-2 text-[14px] font-bold text-[#6b7280] backdrop-blur">
                   {group.dateLabel}
                 </h2>
                 <div className="divide-y divide-[#eef1f4]">

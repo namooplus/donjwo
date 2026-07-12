@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ChevronDown, Home, Send } from "lucide-react";
+import { ArrowDownLeft, ChevronDown, Home, RefreshCw, Send } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { BackendSnapshot } from "@/backend/queries";
 import type { Person } from "@/backend/schema";
@@ -24,14 +24,18 @@ const tabs: Tab[] = [
 
 type HomeScreenProps = {
   snapshot: BackendSnapshot | null;
+  isRefreshing: boolean;
   onOpenExpenseHistory: () => void;
+  onRefresh: () => Promise<void> | void;
   onSendExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
   onReceiveExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
 };
 
 export function HomeScreen({
   snapshot,
+  isRefreshing,
   onOpenExpenseHistory,
+  onRefresh,
   onSendExpense,
   onReceiveExpense
 }: HomeScreenProps) {
@@ -105,7 +109,21 @@ export function HomeScreen({
 
   return (
     <>
-      <ScreenHeader title={headerTitle} />
+      <ScreenHeader
+        title={headerTitle}
+        leadingAction={
+          activeTab === "summary"
+            ? {
+                icon: RefreshCw,
+                label: "서버 데이터 새로고침",
+                isPending: isRefreshing,
+                onClick: () => {
+                  void onRefresh();
+                }
+              }
+            : undefined
+        }
+      />
 
       {activeTab === "summary" && (
         <SummaryFragment

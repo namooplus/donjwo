@@ -44,6 +44,7 @@ function App() {
   const [isInitialSnapshotLoading, setIsInitialSnapshotLoading] = useState(
     hasSupabaseConfig()
   );
+  const [isSnapshotRefreshing, setIsSnapshotRefreshing] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(null);
   const activeScreen = navigation.screen;
 
@@ -60,14 +61,19 @@ function App() {
     });
   };
 
-  const refreshSnapshot = () => {
+  const refreshSnapshot = async () => {
     if (!hasSupabaseConfig()) {
-      return Promise.resolve();
+      return;
     }
 
-    return getBackendSnapshot()
-      .then(setExpenseSnapshot)
-      .catch(() => {});
+    setIsSnapshotRefreshing(true);
+
+    try {
+      setExpenseSnapshot(await getBackendSnapshot());
+    } catch {
+    } finally {
+      setIsSnapshotRefreshing(false);
+    }
   };
 
   useEffect(() => {
@@ -128,7 +134,9 @@ function App() {
     activeScreen === "home" ? (
       <HomeScreen
         snapshot={expenseSnapshot}
+        isRefreshing={isSnapshotRefreshing}
         onOpenExpenseHistory={() => navigateTo("expense-history")}
+        onRefresh={refreshSnapshot}
         onSendExpense={markExpenseSent}
         onReceiveExpense={markExpenseReceived}
       />
