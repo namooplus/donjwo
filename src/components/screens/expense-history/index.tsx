@@ -56,7 +56,7 @@ export function ExpenseHistoryScreen({
                 <div className="divide-y divide-[#eef1f4]">
                   {group.expenses.map((expense) => (
                     <button
-                      className="flex w-full items-center gap-3 py-4 text-left"
+                      className="grid w-full grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-3 overflow-hidden py-4 text-left"
                       key={expense.id}
                       type="button"
                       onClick={() => onOpenExpenseDetail(Number(expense.id))}
@@ -80,12 +80,11 @@ export function ExpenseHistoryScreen({
                           </p>
                         )}
                         <p className="mt-1 truncate text-[13px] font-semibold text-[#9aa3af]">
-                          {expense.payerName} 결제 · {expense.debtorCount}명 사용 ·{" "}
-                          {expense.settledDebtorCount}명 정산 · $
-                          {formatDollar(expense.cost)}
+                          {expense.payerName} 결제 · {expense.settledDebtorCount}/
+                          {expense.debtorCount} · ${formatDollar(expense.cost)}
                         </p>
                       </div>
-                      <p className="shrink-0 text-right text-[16px] font-bold text-[#111827]">
+                      <p className="min-w-max justify-self-end text-right text-[16px] font-bold text-[#111827]">
                         {formatWon(expense.realCost)}원
                       </p>
                     </button>
