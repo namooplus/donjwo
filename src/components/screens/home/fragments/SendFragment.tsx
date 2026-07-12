@@ -204,7 +204,11 @@ function getSendExpenseGroups(snapshot: BackendSnapshot, targetSender: Person) {
       ...group,
       expenses: group.expenses.sort((left, right) => Number(right.id) - Number(left.id))
     }))
-    .sort((left, right) => right.total - left.total);
+    .sort(
+      (left, right) =>
+        left.payer.name.localeCompare(right.payer.name, "ko") ||
+        left.payer.id - right.payer.id
+    );
 }
 
 function formatKoreanDate(date: string) {

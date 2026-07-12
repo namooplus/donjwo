@@ -374,7 +374,11 @@ function getReceiveExpenseGroups(snapshot: BackendSnapshot, targetReceiver: Pers
       ...group,
       expenses: group.expenses.sort((left, right) => Number(right.id) - Number(left.id))
     }))
-    .sort((left, right) => right.total - left.total);
+    .sort(
+      (left, right) =>
+        left.debtor.name.localeCompare(right.debtor.name, "ko") ||
+        left.debtor.id - right.debtor.id
+    );
 }
 
 function formatKoreanDate(date: string) {
