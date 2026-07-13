@@ -10,6 +10,7 @@ import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummar
 type SendFragmentProps = {
   snapshot: BackendSnapshot | null;
   targetSender: Person | null;
+  onOpenExpenseDetail: (expenseId: number) => void;
   onSendExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
 };
 
@@ -26,6 +27,7 @@ type SendExpense = {
 export function SendFragment({
   snapshot,
   targetSender,
+  onOpenExpenseDetail,
   onSendExpense
 }: SendFragmentProps) {
   const targetSenderId = targetSender?.id ?? null;
@@ -80,25 +82,31 @@ export function SendFragment({
             {group.expenses.map((expense) => {
               return (
                 <article
-                  className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-3 py-4"
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-4"
                   key={expense.id}
                 >
-                  <span className="grid size-10 place-items-center rounded-full bg-[#fff1f1] text-[#dc2626]">
-                    <ReceiptText className="size-5" aria-hidden="true" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-[15px] font-bold text-[#111827]">
-                      {expense.title}
-                    </h3>
-                    {expense.description && (
-                      <p className="mt-1 line-clamp-2 text-[13px] font-semibold leading-snug text-[#6b7280]">
-                        {expense.description}
-                      </p>
-                    )}
-                    <p className="mt-1 truncate text-[13px] font-semibold text-[#9aa3af]">
-                      {formatKoreanDate(expense.date)} · {formatWon(expense.cost)}원
-                    </p>
-                  </div>
+                  <button
+                    className="grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 text-left"
+                    type="button"
+                    onClick={() => onOpenExpenseDetail(Number(expense.id))}
+                  >
+                    <span className="grid size-10 place-items-center rounded-full bg-[#fff1f1] text-[#dc2626]">
+                      <ReceiptText className="size-5" aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[15px] font-bold text-[#111827]">
+                        {expense.title}
+                      </span>
+                      {expense.description && (
+                        <span className="mt-1 line-clamp-2 text-[13px] font-semibold leading-snug text-[#6b7280]">
+                          {expense.description}
+                        </span>
+                      )}
+                      <span className="mt-1 block truncate text-[13px] font-semibold text-[#9aa3af]">
+                        {formatKoreanDate(expense.date)} · {formatWon(expense.cost)}원
+                      </span>
+                    </span>
+                  </button>
                   <button
                     className={[
                       "flex min-w-[5.25rem] items-center justify-center justify-self-end rounded-full px-3.5 py-2 text-[13px] font-bold whitespace-nowrap transition disabled:cursor-not-allowed",

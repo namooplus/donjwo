@@ -13,7 +13,7 @@ import { ExpenseAddScreen } from "@/components/screens/expense-add";
 import { ExpenseHistoryScreen } from "@/components/screens/expense-history";
 import { ExpenseHistoryDetailScreen } from "@/components/screens/expense-history-detail";
 import { ExpensePersonalScreen } from "@/components/screens/expense-personal";
-import { HomeScreen } from "@/components/screens/home";
+import { HomeScreen, type HomeTabKey } from "@/components/screens/home";
 import { SplashScreen } from "@/components/screens/splash";
 
 type ScreenKey =
@@ -23,6 +23,7 @@ type ScreenKey =
   | "expense-add"
   | "expense-personal";
 type NavigationDirection = "forward" | "back";
+type DetailReturnScreen = "home" | "expense-history" | "expense-personal";
 
 const screenDepth: Record<ScreenKey, number> = {
   home: 0,
@@ -53,6 +54,9 @@ function App() {
   );
   const [isSnapshotRefreshing, setIsSnapshotRefreshing] = useState(false);
   const [selectedExpenseId, setSelectedExpenseId] = useState<number | null>(null);
+  const [activeHomeTab, setActiveHomeTab] = useState<HomeTabKey>("summary");
+  const [detailReturnScreen, setDetailReturnScreen] =
+    useState<DetailReturnScreen>("expense-history");
   const activeScreen = navigation.screen;
 
   const navigateTo = (nextScreen: ScreenKey) => {
@@ -125,8 +129,9 @@ function App() {
     navigateTo("expense-history");
   };
 
-  const openExpenseDetail = (expenseId: number) => {
+  const openExpenseDetail = (expenseId: number, returnScreen: DetailReturnScreen) => {
     setSelectedExpenseId(expenseId);
+    setDetailReturnScreen(returnScreen);
     navigateTo("expense-history-detail");
   };
 
@@ -141,9 +146,12 @@ function App() {
     activeScreen === "home" ? (
       <HomeScreen
         snapshot={expenseSnapshot}
+        activeTab={activeHomeTab}
         isRefreshing={isSnapshotRefreshing}
         onOpenExpenseHistory={() => navigateTo("expense-history")}
         onOpenExpensePersonal={() => navigateTo("expense-personal")}
+        onOpenExpenseDetail={(expenseId) => openExpenseDetail(expenseId, "home")}
+        onTabChange={setActiveHomeTab}
         onRefresh={refreshSnapshot}
         onSendExpense={markExpenseSent}
         onReceiveExpense={markExpenseReceived}
@@ -153,19 +161,24 @@ function App() {
         snapshot={expenseSnapshot}
         onBack={() => navigateTo("home")}
         onOpenExpenseAdd={() => navigateTo("expense-add")}
-        onOpenExpenseDetail={openExpenseDetail}
+        onOpenExpenseDetail={(expenseId) =>
+          openExpenseDetail(expenseId, "expense-history")
+        }
       />
     ) : activeScreen === "expense-history-detail" ? (
       <ExpenseHistoryDetailScreen
         snapshot={expenseSnapshot}
         expenseId={selectedExpenseId}
-        onBack={() => navigateTo("expense-history")}
+        onBack={() => navigateTo(detailReturnScreen)}
         onDeleteExpense={deleteExpense}
       />
     ) : activeScreen === "expense-personal" ? (
       <ExpensePersonalScreen
         snapshot={expenseSnapshot}
         onBack={() => navigateTo("home")}
+        onOpenExpenseDetail={(expenseId) =>
+          openExpenseDetail(expenseId, "expense-personal")
+        }
       />
     ) : (
       <ExpenseAddScreen

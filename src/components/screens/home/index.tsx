@@ -8,7 +8,7 @@ import { ReceiveFragment } from "@/components/screens/home/fragments/ReceiveFrag
 import { SendFragment } from "@/components/screens/home/fragments/SendFragment";
 import { SummaryFragment } from "@/components/screens/home/fragments/SummaryFragment";
 
-type HomeTabKey = "summary" | "send" | "receive";
+export type HomeTabKey = "summary" | "send" | "receive";
 
 type Tab = {
   key: HomeTabKey;
@@ -24,9 +24,12 @@ const tabs: Tab[] = [
 
 type HomeScreenProps = {
   snapshot: BackendSnapshot | null;
+  activeTab: HomeTabKey;
   isRefreshing: boolean;
   onOpenExpenseHistory: () => void;
   onOpenExpensePersonal: () => void;
+  onOpenExpenseDetail: (expenseId: number) => void;
+  onTabChange: (tab: HomeTabKey) => void;
   onRefresh: () => Promise<void> | void;
   onSendExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
   onReceiveExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
@@ -34,14 +37,16 @@ type HomeScreenProps = {
 
 export function HomeScreen({
   snapshot,
+  activeTab,
   isRefreshing,
   onOpenExpenseHistory,
   onOpenExpensePersonal,
+  onOpenExpenseDetail,
+  onTabChange,
   onRefresh,
   onSendExpense,
   onReceiveExpense
 }: HomeScreenProps) {
-  const [activeTab, setActiveTab] = useState<HomeTabKey>("summary");
   const [selectedSenderId, setSelectedSenderId] = useState<number | null>(null);
   const [selectedReceiverId, setSelectedReceiverId] = useState<number | null>(null);
   const selectedSender = useMemo(() => {
@@ -138,6 +143,7 @@ export function HomeScreen({
         <SendFragment
           snapshot={snapshot}
           targetSender={selectedSender}
+          onOpenExpenseDetail={onOpenExpenseDetail}
           onSendExpense={onSendExpense}
         />
       )}
@@ -145,11 +151,12 @@ export function HomeScreen({
         <ReceiveFragment
           snapshot={snapshot}
           targetReceiver={selectedReceiver}
+          onOpenExpenseDetail={onOpenExpenseDetail}
           onReceiveExpense={onReceiveExpense}
         />
       )}
 
-      <FloatingTabs activeTab={activeTab} onChange={setActiveTab} />
+      <FloatingTabs activeTab={activeTab} onChange={onTabChange} />
     </>
   );
 }

@@ -10,6 +10,7 @@ import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummar
 type ReceiveFragmentProps = {
   snapshot: BackendSnapshot | null;
   targetReceiver: Person | null;
+  onOpenExpenseDetail: (expenseId: number) => void;
   onReceiveExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
 };
 
@@ -33,6 +34,7 @@ type ExitingReceiveExpense = ReceiveExpense & {
 export function ReceiveFragment({
   snapshot,
   targetReceiver,
+  onOpenExpenseDetail,
   onReceiveExpense
 }: ReceiveFragmentProps) {
   const [confirmingAction, setConfirmingAction] = useState<{
@@ -210,23 +212,30 @@ export function ReceiveFragment({
                       >
                         <div className="min-h-0 overflow-hidden">
                           <div className="flex items-center gap-3 py-4">
-                            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#f2f6ff] text-[#2f6df6]">
-                              <ReceiptText className="size-5" aria-hidden="true" />
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="truncate text-[15px] font-bold text-[#111827]">
-                                {expense.title}
-                              </h3>
-                              {expense.description && (
-                                <p className="mt-1 line-clamp-2 text-[13px] font-semibold leading-snug text-[#6b7280]">
-                                  {expense.description}
-                                </p>
-                              )}
-                              <p className="mt-1 truncate text-[13px] font-semibold text-[#9aa3af]">
-                                {formatKoreanDate(expense.date)} ·{" "}
-                                {formatWon(expense.cost)}원
-                              </p>
-                            </div>
+                            <button
+                              className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                              type="button"
+                              disabled={expense.isExiting}
+                              onClick={() => onOpenExpenseDetail(Number(expense.id))}
+                            >
+                              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#f2f6ff] text-[#2f6df6]">
+                                <ReceiptText className="size-5" aria-hidden="true" />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-[15px] font-bold text-[#111827]">
+                                  {expense.title}
+                                </span>
+                                {expense.description && (
+                                  <span className="mt-1 line-clamp-2 text-[13px] font-semibold leading-snug text-[#6b7280]">
+                                    {expense.description}
+                                  </span>
+                                )}
+                                <span className="mt-1 block truncate text-[13px] font-semibold text-[#9aa3af]">
+                                  {formatKoreanDate(expense.date)} ·{" "}
+                                  {formatWon(expense.cost)}원
+                                </span>
+                              </span>
+                            </button>
                             <button
                               className={[
                                 "flex min-w-[4.5rem] shrink-0 items-center justify-center rounded-full px-3.5 py-2 text-[13px] font-bold transition disabled:cursor-not-allowed",

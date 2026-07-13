@@ -12,6 +12,7 @@ import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummar
 type ExpensePersonalScreenProps = {
   snapshot: BackendSnapshot | null;
   onBack: () => void;
+  onOpenExpenseDetail: (expenseId: number) => void;
 };
 
 type PersonalExpense = {
@@ -26,7 +27,8 @@ type PersonalExpense = {
 
 export function ExpensePersonalScreen({
   snapshot,
-  onBack
+  onBack,
+  onOpenExpenseDetail
 }: ExpensePersonalScreenProps) {
   const [selectedPersonId, setSelectedPersonId] = useState<number | null>(null);
   const selectedPerson = useMemo(() => {
@@ -82,9 +84,7 @@ export function ExpensePersonalScreen({
 
         {snapshot && selectedPerson && (
           <div className="mb-8">
-            <p className="text-[15px] font-bold text-[#6b7280]">
-              총 사용 금액
-            </p>
+            <p className="text-[15px] font-bold text-[#6b7280]">총 사용 금액</p>
             <p className="mt-1 text-[34px] font-black leading-tight tracking-normal text-[#111827]">
               {formatWon(total)}원
             </p>
@@ -104,9 +104,11 @@ export function ExpensePersonalScreen({
                 </h2>
                 <div className="divide-y divide-[#eef1f4]">
                   {group.expenses.map((expense) => (
-                    <article
-                      className="grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-3 overflow-hidden py-4"
+                    <button
+                      className="grid w-full grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-3 overflow-hidden py-4 text-left"
                       key={expense.id}
+                      type="button"
+                      onClick={() => onOpenExpenseDetail(Number(expense.id))}
                     >
                       <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[#f2f6ff] text-[#2f6df6]">
                         <ReceiptText className="size-5" aria-hidden="true" />
@@ -127,7 +129,7 @@ export function ExpensePersonalScreen({
                       <p className="min-w-max justify-self-end text-right text-[16px] font-bold text-[#111827]">
                         {formatWon(expense.cost)}원
                       </p>
-                    </article>
+                    </button>
                   ))}
                 </div>
               </section>
