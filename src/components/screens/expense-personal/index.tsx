@@ -83,7 +83,7 @@ export function ExpensePersonalScreen({
         {snapshot && selectedPerson && (
           <div className="mb-8">
             <p className="text-[15px] font-bold text-[#6b7280]">
-              {selectedPerson.name} 사용 금액
+              총 사용 금액
             </p>
             <p className="mt-1 text-[34px] font-black leading-tight tracking-normal text-[#111827]">
               {formatWon(total)}원
@@ -188,7 +188,7 @@ function PersonTitle({ people, selectedPersonId, onChange }: PersonTitleProps) {
             onClose={() => setIsPickerOpen(false)}
           />
         </span>
-        <span className="shrink-0">사용 내역</span>
+        <span className="shrink-0">의 사용 내역</span>
       </span>
     </span>
   );
