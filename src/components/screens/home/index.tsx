@@ -25,10 +25,14 @@ const tabs: Tab[] = [
 type HomeScreenProps = {
   snapshot: BackendSnapshot | null;
   activeTab: HomeTabKey;
+  selectedSenderId: number | null;
+  selectedReceiverId: number | null;
   isRefreshing: boolean;
   onOpenExpenseHistory: () => void;
   onOpenExpensePersonal: () => void;
   onOpenExpenseDetail: (expenseId: number) => void;
+  onSenderChange: (personId: number) => void;
+  onReceiverChange: (personId: number) => void;
   onTabChange: (tab: HomeTabKey) => void;
   onRefresh: () => Promise<void> | void;
   onSendExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
@@ -38,17 +42,19 @@ type HomeScreenProps = {
 export function HomeScreen({
   snapshot,
   activeTab,
+  selectedSenderId,
+  selectedReceiverId,
   isRefreshing,
   onOpenExpenseHistory,
   onOpenExpensePersonal,
   onOpenExpenseDetail,
+  onSenderChange,
+  onReceiverChange,
   onTabChange,
   onRefresh,
   onSendExpense,
   onReceiveExpense
 }: HomeScreenProps) {
-  const [selectedSenderId, setSelectedSenderId] = useState<number | null>(null);
-  const [selectedReceiverId, setSelectedReceiverId] = useState<number | null>(null);
   const selectedSender = useMemo(() => {
     if (!snapshot || selectedSenderId === null) {
       return null;
@@ -75,8 +81,8 @@ export function HomeScreen({
     const defaultSender =
       snapshot.people.find((person) => person.name === "민서") ?? snapshot.people[0];
 
-    setSelectedSenderId(defaultSender.id);
-  }, [selectedSenderId, snapshot]);
+    onSenderChange(defaultSender.id);
+  }, [onSenderChange, selectedSenderId, snapshot]);
 
   useEffect(() => {
     if (!snapshot || snapshot.people.length === 0) {
@@ -90,8 +96,8 @@ export function HomeScreen({
     const defaultReceiver =
       snapshot.people.find((person) => person.name === "민서") ?? snapshot.people[0];
 
-    setSelectedReceiverId(defaultReceiver.id);
-  }, [selectedReceiverId, snapshot]);
+    onReceiverChange(defaultReceiver.id);
+  }, [onReceiverChange, selectedReceiverId, snapshot]);
 
   const headerTitle =
     activeTab === "send" ? (
@@ -100,7 +106,7 @@ export function HomeScreen({
         selectedPersonId={selectedSenderId}
         pickerLabel="보낼 사람 선택"
         suffix="보내야 할 돈"
-        onChange={setSelectedSenderId}
+        onChange={onSenderChange}
       />
     ) : activeTab === "receive" ? (
       <PersonHeaderTitle
@@ -108,7 +114,7 @@ export function HomeScreen({
         selectedPersonId={selectedReceiverId}
         pickerLabel="받을 사람 선택"
         suffix="받아야 할 돈"
-        onChange={setSelectedReceiverId}
+        onChange={onReceiverChange}
       />
     ) : (
       "돈줘"

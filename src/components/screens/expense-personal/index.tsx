@@ -11,7 +11,9 @@ import { formatWon, getExpenseAmountInWon } from "@/features/home/spendingSummar
 
 type ExpensePersonalScreenProps = {
   snapshot: BackendSnapshot | null;
+  selectedPersonId: number | null;
   onBack: () => void;
+  onPersonChange: (personId: number) => void;
   onOpenExpenseDetail: (expenseId: number) => void;
 };
 
@@ -27,10 +29,11 @@ type PersonalExpense = {
 
 export function ExpensePersonalScreen({
   snapshot,
+  selectedPersonId,
   onBack,
+  onPersonChange,
   onOpenExpenseDetail
 }: ExpensePersonalScreenProps) {
-  const [selectedPersonId, setSelectedPersonId] = useState<number | null>(null);
   const selectedPerson = useMemo(() => {
     if (!snapshot || selectedPersonId === null) {
       return null;
@@ -63,8 +66,8 @@ export function ExpensePersonalScreen({
     const defaultPerson =
       snapshot.people.find((person) => person.name === "민서") ?? snapshot.people[0];
 
-    setSelectedPersonId(defaultPerson.id);
-  }, [selectedPersonId, snapshot]);
+    onPersonChange(defaultPerson.id);
+  }, [onPersonChange, selectedPersonId, snapshot]);
 
   return (
     <div className="min-h-screen px-7 pb-32 pt-32 sm:px-9 lg:px-12">
@@ -73,7 +76,7 @@ export function ExpensePersonalScreen({
           <PersonTitle
             people={snapshot?.people ?? []}
             selectedPersonId={selectedPersonId}
-            onChange={setSelectedPersonId}
+            onChange={onPersonChange}
           />
         }
         background="solid"
