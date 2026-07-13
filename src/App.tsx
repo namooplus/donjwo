@@ -166,6 +166,16 @@ function App() {
     navigateTo("home");
   };
 
+  const closeExpenseHistoryDetail = () => {
+    resetScrollPosition("expense-history-detail");
+    navigateTo(detailReturnScreen);
+  };
+
+  const closeExpenseAdd = () => {
+    resetScrollPosition("expense-add");
+    navigateTo("expense-history");
+  };
+
   const refreshSnapshot = async () => {
     if (!hasSupabaseConfig()) {
       return;
@@ -309,7 +319,7 @@ function App() {
       <ExpenseHistoryDetailScreen
         snapshot={expenseSnapshot}
         expenseId={selectedExpenseId}
-        onBack={() => navigateTo(detailReturnScreen)}
+        onBack={closeExpenseHistoryDetail}
         onDeleteExpense={deleteExpense}
       />
     ) : activeScreen === "expense-personal" ? (
@@ -325,7 +335,7 @@ function App() {
     ) : (
       <ExpenseAddScreen
         snapshot={expenseSnapshot}
-        onBack={() => navigateTo("expense-history")}
+        onBack={closeExpenseAdd}
         onCreateExpense={createExpense}
       />
     );
