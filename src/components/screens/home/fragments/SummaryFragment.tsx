@@ -59,7 +59,7 @@ export function SummaryFragment({
         )}
 
         {summary.weeks.length > 0 && (
-          <div className="grid gap-7">
+          <div className="grid gap-14">
             {summary.weeks.map((week) => (
               <article className="relative" key={week.id}>
                 <span className="absolute -left-9 top-1 grid size-7 place-items-center rounded-full border-[5px] border-[#f2f4f6] bg-[#111827]" />
@@ -81,7 +81,7 @@ export function SummaryFragment({
           </div>
         )}
 
-        <div className="mt-10 grid gap-3">
+        <div className="mt-10 grid gap-5">
           <button
             className="flex items-center gap-1 text-[15px] font-bold text-[#2f6df6] transition hover:text-[#1d4ed8]"
             type="button"
