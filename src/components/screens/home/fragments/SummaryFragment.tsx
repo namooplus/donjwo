@@ -12,11 +12,13 @@ import {
 type SummaryFragmentProps = {
   snapshot: BackendSnapshot | null;
   onOpenExpenseHistory: () => void;
+  onOpenExpensePersonal: () => void;
 };
 
 export function SummaryFragment({
   snapshot,
-  onOpenExpenseHistory
+  onOpenExpenseHistory,
+  onOpenExpensePersonal
 }: SummaryFragmentProps) {
   const summary = useMemo(() => {
     if (!snapshot) {
@@ -79,14 +81,24 @@ export function SummaryFragment({
           </div>
         )}
 
-        <button
-          className="mt-10 flex items-center gap-1 text-[15px] font-bold text-[#2f6df6] transition hover:text-[#1d4ed8]"
-          type="button"
-          onClick={onOpenExpenseHistory}
-        >
-          자세히 보기
-          <ChevronRight className="size-4" aria-hidden="true" />
-        </button>
+        <div className="mt-10 grid gap-3">
+          <button
+            className="flex items-center gap-1 text-[15px] font-bold text-[#2f6df6] transition hover:text-[#1d4ed8]"
+            type="button"
+            onClick={onOpenExpenseHistory}
+          >
+            전체 사용 내역 보기
+            <ChevronRight className="size-4" aria-hidden="true" />
+          </button>
+          <button
+            className="flex items-center gap-1 text-[15px] font-bold text-[#2f6df6] transition hover:text-[#1d4ed8]"
+            type="button"
+            onClick={onOpenExpensePersonal}
+          >
+            개인별 사용 내역 보기
+            <ChevronRight className="size-4" aria-hidden="true" />
+          </button>
+        </div>
       </section>
     </div>
   );

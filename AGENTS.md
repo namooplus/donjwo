@@ -53,8 +53,13 @@ floating tabs, and a Supabase-backed Home spending timeline. Keep this file and
   from the `Person` table.
 - The Receive tab lists expenses paid by the selected receiver, grouped by
   debtor, and hides `ExpenseDebtor` rows with `settlementStatus` of `SETTLED`.
-- The Home timeline has a `자세히 보기` action that opens the `공금 사용 내역`
-  expense history screen.
+- The Home timeline has a `전체 사용 내역 보기` action that opens the
+  `공금 사용 내역` expense history screen.
+- The Home timeline has a `개인별 사용 내역 보기` action that opens the
+  `ExpensePersonal` screen.
+- The `ExpensePersonal` screen shows each selected person's share of expenses
+  from `ExpenseDebtor`, using real won amount divided by the expense debtor
+  count.
 - The expense history screen has a floating Add action that opens the
   `지출 추가` screen.
 - The floating bottom navigation is icon-only. Preserve `aria-label` values for

@@ -72,6 +72,8 @@ bun run format
 - `src/components/screens` also contains pushed screen components.
 - `src/components/screens/expense-add` contains the pushed expense creation
   form.
+- `src/components/screens/expense-personal` contains the personal expense usage
+  screen opened from the Home Summary tab.
 - `src/features/home` contains Home spending summary helpers.
 - `src/main.tsx` mounts React and registers the service worker.
 - `src/styles.css` contains the app styles.
@@ -115,6 +117,9 @@ rows as pending confirmation.
 The Receive tab target receiver is selected from `Person` rows. It lists
 expenses paid by that person, grouped by debtor, and hides `SETTLED` debtor
 rows.
+The Summary tab opens both full usage history and personal usage history.
+Personal usage history totals each selected person's `ExpenseDebtor` share using
+the real won expense amount divided by debtor count.
 
 ## Documentation Maintenance
 

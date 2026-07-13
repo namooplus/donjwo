@@ -26,6 +26,7 @@ type HomeScreenProps = {
   snapshot: BackendSnapshot | null;
   isRefreshing: boolean;
   onOpenExpenseHistory: () => void;
+  onOpenExpensePersonal: () => void;
   onRefresh: () => Promise<void> | void;
   onSendExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
   onReceiveExpense: (expenseId: number, debtorId: number) => Promise<void> | void;
@@ -35,6 +36,7 @@ export function HomeScreen({
   snapshot,
   isRefreshing,
   onOpenExpenseHistory,
+  onOpenExpensePersonal,
   onRefresh,
   onSendExpense,
   onReceiveExpense
@@ -129,6 +131,7 @@ export function HomeScreen({
         <SummaryFragment
           snapshot={snapshot}
           onOpenExpenseHistory={onOpenExpenseHistory}
+          onOpenExpensePersonal={onOpenExpensePersonal}
         />
       )}
       {activeTab === "send" && (

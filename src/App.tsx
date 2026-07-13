@@ -12,15 +12,22 @@ import { hasSupabaseConfig } from "@/backend/supabase";
 import { ExpenseAddScreen } from "@/components/screens/expense-add";
 import { ExpenseHistoryScreen } from "@/components/screens/expense-history";
 import { ExpenseHistoryDetailScreen } from "@/components/screens/expense-history-detail";
+import { ExpensePersonalScreen } from "@/components/screens/expense-personal";
 import { HomeScreen } from "@/components/screens/home";
 import { SplashScreen } from "@/components/screens/splash";
 
-type ScreenKey = "home" | "expense-history" | "expense-history-detail" | "expense-add";
+type ScreenKey =
+  | "home"
+  | "expense-history"
+  | "expense-history-detail"
+  | "expense-add"
+  | "expense-personal";
 type NavigationDirection = "forward" | "back";
 
 const screenDepth: Record<ScreenKey, number> = {
   home: 0,
   "expense-history": 1,
+  "expense-personal": 1,
   "expense-history-detail": 2,
   "expense-add": 2
 };
@@ -136,6 +143,7 @@ function App() {
         snapshot={expenseSnapshot}
         isRefreshing={isSnapshotRefreshing}
         onOpenExpenseHistory={() => navigateTo("expense-history")}
+        onOpenExpensePersonal={() => navigateTo("expense-personal")}
         onRefresh={refreshSnapshot}
         onSendExpense={markExpenseSent}
         onReceiveExpense={markExpenseReceived}
@@ -153,6 +161,11 @@ function App() {
         expenseId={selectedExpenseId}
         onBack={() => navigateTo("expense-history")}
         onDeleteExpense={deleteExpense}
+      />
+    ) : activeScreen === "expense-personal" ? (
+      <ExpensePersonalScreen
+        snapshot={expenseSnapshot}
+        onBack={() => navigateTo("home")}
       />
     ) : (
       <ExpenseAddScreen
