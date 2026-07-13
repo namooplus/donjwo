@@ -79,8 +79,11 @@ export function SendFragment({
           <div className="mt-5 divide-y divide-[#eef1f4]">
             {group.expenses.map((expense) => {
               return (
-                <article className="flex items-center gap-3 py-4" key={expense.id}>
-                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#fff1f1] text-[#dc2626]">
+                <article
+                  className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-3 py-4"
+                  key={expense.id}
+                >
+                  <span className="grid size-10 place-items-center rounded-full bg-[#fff1f1] text-[#dc2626]">
                     <ReceiptText className="size-5" aria-hidden="true" />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -98,7 +101,7 @@ export function SendFragment({
                   </div>
                   <button
                     className={[
-                      "flex min-w-[5.25rem] shrink-0 items-center justify-center rounded-full px-3.5 py-2 text-[13px] font-bold transition disabled:cursor-not-allowed",
+                      "flex min-w-[5.25rem] items-center justify-center justify-self-end rounded-full px-3.5 py-2 text-[13px] font-bold whitespace-nowrap transition disabled:cursor-not-allowed",
                       expense.confirmed
                         ? "bg-[#eef1f4] text-[#8a94a3]"
                         : "bg-[#111827] text-white"
@@ -109,7 +112,7 @@ export function SendFragment({
                       setConfirmingExpenseId(expense.id);
                     }}
                   >
-                    {expense.confirmed ? "송금 확인중" : "송금했어요"}
+                    {expense.confirmed ? "송금 확인중" : "보냈어요"}
                   </button>
                 </article>
               );
